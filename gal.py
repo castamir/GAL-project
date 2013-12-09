@@ -1,8 +1,8 @@
 import Tkinter
 import math
 
-HEIGHT = 300
-WIDTH = 400
+HEIGHT = 450
+WIDTH = 600
 NODE_SIZE = 50
 
 
@@ -24,9 +24,6 @@ class Node:
 
     def get_coord(self):
         return self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r
-
-
-
 
 
 class GAL:
@@ -74,7 +71,7 @@ class GAL:
 
     def event_add_edge_move(self, event):
         if self.active_edge is None:
-            self.active_edge = self.canvas.create_line(self.x, self.y, event.x, event.y, arrow="last")
+            self.active_edge = self.canvas.create_line(self.x, self.y, event.x, event.y, arrow="last", width=2)
         else:
             x1, y1, x2, y2 = self.canvas.coords(self.active_edge)
             self.canvas.coords(self.active_edge, x1, y1, event.x, event.y)
@@ -146,7 +143,7 @@ class GAL:
     def _calculate_edge_end_from_nodes(self, start_node, end_node):
         diffx = end_node.x - start_node.x
         diffy = end_node.y - start_node.y
-        distance = math.sqrt(diffx**2 + diffy**2)
+        distance = math.sqrt(diffx ** 2 + diffy ** 2)
         ratio = NODE_SIZE / 2 / distance
         x = end_node.x - diffx * ratio
         y = end_node.y - diffy * ratio
