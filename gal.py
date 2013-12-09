@@ -51,7 +51,7 @@ class GAL:
         self.canvas.bind('<ButtonRelease-1>', self.event_add_edge_end)
         self.canvas.bind('<Button-3>', self.event_move_node_start)
         self.canvas.bind('<B3-Motion>', self.event_move_node)
-        self.canvas.pack()
+        self.canvas.pack(fill='both', expand='yes')
 
     def run(self):
         self.window.mainloop()
@@ -78,7 +78,6 @@ class GAL:
         else:
             x1, y1, x2, y2 = self.canvas.coords(self.active_edge)
             self.canvas.coords(self.active_edge, x1, y1, event.x, event.y)
-
 
     def event_add_edge_end(self, event):
         if self.active_edge is None:
@@ -148,9 +147,9 @@ class GAL:
         diffx = end_node.x - start_node.x
         diffy = end_node.y - start_node.y
         distance = math.sqrt(diffx**2 + diffy**2)
-        ratio = NODE_SIZE / distance
-        x = end_node.x - diffx * ratio / 2
-        y = end_node.y - diffy * ratio / 2
+        ratio = NODE_SIZE / 2 / distance
+        x = end_node.x - diffx * ratio
+        y = end_node.y - diffy * ratio
         return x, y
 
     def _get_id_from_position(self, x, y, reverse=False):
