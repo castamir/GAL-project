@@ -133,10 +133,13 @@ class GAL:
         diffx = end_node.x - start_node.x
         diffy = end_node.y - start_node.y
         distance = math.sqrt(diffx ** 2 + diffy ** 2)
-        ratio = NODE_SIZE / 2 / distance
-        x = end_node.x - diffx * ratio
-        y = end_node.y - diffy * ratio
-        return x, y
+        if distance > 0:
+            ratio = NODE_SIZE / 2 / distance
+            x = end_node.x - diffx * ratio
+            y = end_node.y - diffy * ratio
+            return x, y
+        return end_node.x, end_node.y
+
 
     def _get_id_from_position(self, x, y, reverse=False):
         overlaping = self.canvas.find_overlapping(x, y, x, y)
