@@ -1,4 +1,5 @@
-import gal.py
+import Components
+import Magic
 
 # dfs (graf(V,H))
 # for u in V
@@ -31,3 +32,12 @@ import gal.py
 #    if (cycles == 0)# nenasla se smycka
 #
 #  return cycles
+
+def DFS(V, E):
+    return
+
+def DFS_Visit(u, v):
+    return
+
+def find_cycle(u, v):
+    return
