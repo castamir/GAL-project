@@ -1,47 +1,36 @@
-import Tkinter
+from Tkinter import *
 import math
+from Components import *
 
 HEIGHT = 450
 WIDTH = 600
-NODE_SIZE = 50
-
-
-class Edge:
-    def __init__(self, start, end):
-        if not isinstance(start, Node):
-            pass
-        if not isinstance(end, Node):
-            pass
-        self.start = start
-        self.end = end
-
-
-class Node:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.r = int(NODE_SIZE / 2)
-
-    def get_coord(self):
-        return self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r
 
 
 class GAL:
     def __init__(self):
         self.locked = False
-        self.window = Tkinter.Tk()
+        self.window = Tk()
+        self.window.title("kuk")
         self.canvas = None
+        self.buttons = {}
         self.nodes = {}
         self.edges = {}
         self.render_canvas()
+        self.render_buttons()
         self.active_node = None
         self.active_edge = None
         self.start = None
         self.x = None
         self.y = None
 
+    def render_buttons(self):
+        self.buttons['start'] = b = Button(self.window, text="Start", compound=LEFT)
+        b.pack(side=RIGHT, padx=5, pady=5)
+        self.buttons['reset'] = b = Button(self.window, text="Reset", compound=LEFT)
+        b.pack(side=RIGHT, padx=5, pady=5)
+
     def render_canvas(self):
-        self.canvas = Tkinter.Canvas(self.window, bg="white", height=HEIGHT, width=WIDTH)
+        self.canvas = Canvas(self.window, height=HEIGHT, width=WIDTH, relief=RAISED, borderwidth=1)
         self.canvas.bind('<Double-Button-1>', self.event_add_node)
         self.canvas.bind('<Button-1>', self.event_add_edge_start)
         self.canvas.bind('<B1-Motion>', self.event_add_edge_move)
