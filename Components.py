@@ -13,7 +13,8 @@ class Edge:
 
 
 class Node:
-    def __init__(self, x, y):
+    def __init__(self, x, y, name):
+        self.name = name
         self.x = x
         self.y = y
         self.r = int(NODE_SIZE / 2)
