@@ -83,7 +83,6 @@ class Magic:
         u.f = self.time
 
     def DFS(self, V, E, index):
-        print index
         for u in index:
             V[u].Pre = []
         self.time = 0
@@ -108,19 +107,33 @@ class Magic:
             self.TransponseNodes[TransponseNames[i]] = Nodes[i]
             self.TransponseIndex.append(TransponseNames[i])
 
+    def FindComponent(self):
+        comp = []
+        x = 0
+        self.components.append([])
+        for n in self.TransponseIndex:
+            self.components[x].append(self.TransponseNodes[n])
+            distance = self.TransponseNodes[n].f - self.TransponseNodes[n].d
+            if distance == 1:
+                self.components.append([])
+                x += 1
+
+        for i in self.components:
+            if len(i) == 0:
+                self.components.remove(i)
+
+
     # todo
     def SSC(self):
         self.StructInit(self.nodes, self.edges)
-       # print self.nodes.keys()
         self.DFS(self.nodes, self.edges, self.nodes.keys())
-       # self.print_path((s.name, s.d, s.f) for s in self.nodes.values())
+
         self.TransponseGraph()
-        #print self.TransponseNodes.keys(), self.TransponseIndex
+
         self.StructInit(self.TransponseNodes, self.TransponseEdges)
         self.DFS(self.TransponseNodes, self.TransponseEdges, self.TransponseIndex)
-        #print self.TransponseIndex
-        self.print_path(s.name for s in self.TransponseNodes.values())
-        self.print_path((s.name, s.d, s.f) for s in self.TransponseNodes.values())
+
+        self.FindComponent()
         # nalezeni komponent
         self.add_color_to_components()
         self.next_step()
@@ -197,6 +210,11 @@ if __name__ == "__main__":
 
     x = Magic(V, E)
     x.SSC()
+    for i in x.components:
+        for j in i:
+            print j.name
+        print "xxx"
+
     # c = [V["A"], V["B"], V["C"], V["E"]]
     # path = x.find_shortest_path_containing_all_nodes(c)
     # if path is not None:
