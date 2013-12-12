@@ -14,6 +14,10 @@ class Magic:
         self.current_step = None
         self.next_step()
         self.reset()
+        self.time = 0
+        self.TransponseEdges = {}
+        self.TransponseNodes = {}
+
         for v in self.nodes:
             node = self.nodes[v]
             node.name = v
@@ -51,9 +55,67 @@ class Magic:
                                                                 node_pre=pre) #obarveni
                             self.cycles.append(new_cycle)
 
+    def StructInit(self, V, E):
+        for v in V:
+            node = V[v]
+            node.name = v
+            node.color = "white"
+            for e in E:
+                edge = E[e]
+                if edge.start == node:
+                    if (edge.end) not in node.Adj:
+                        node.Adj.append(edge.end)
+        for e in E:
+            E[e].name = e
+
+    def DFS_visit(self, u):
+        u.color = "grey"
+        self.time = self.time +1;
+        u.d = self.time
+        for v in u.Adj:
+            if v.color == "white":
+                self.DFS_visit(v)
+        u.color = "black"
+        self.time = self.time + 1
+        u.f = self.time
+
+    def DFS(self, V, E):
+        for u in V:
+            V[u].Pre = []
+        self.time = 0
+        for u in V:
+            if V[u].color == "white":
+                self.DFS_visit(V[u])
+
+    def TransponseGraph(self):
+        TransponseIndex = []
+        TransponseNames = {}
+        Nodes = {}
+        for e in self.edges:
+            self.TransponseEdges[e]= Edge(self.edges[e].end, self.edges[e].start)
+
+        for v in self.nodes:
+            node = self.nodes[v]
+            Nodes[node.f] = node
+            TransponseNames[node.f] = v
+        TransponseIndex = Nodes.keys()
+        TransponseIndex.sort()
+        TransponseIndex.reverse()
+        for i in TransponseIndex:
+            self.TransponseNodes[TransponseNames[i]] = Nodes[i]
+
 
     # todo
     def SSC(self):
+        self.StructInit(self.nodes, self.edges)
+        self.DFS(self.nodes, self.edges)
+
+        self.TransponseGraph()
+
+        self.StructInit(self.TransponseNodes, self.TransponseEdges)
+        self.DFS(self.TransponseNodes, self.TransponseEdges)
+
+        self.print_path(s.name for s in self.TransponseNodes.values())
         # nalezeni komponent
         self.add_color_to_components()
         self.next_step()
@@ -129,9 +191,9 @@ if __name__ == "__main__":
     }
 
     x = Magic(V, E)
-
-    c = [V["A"], V["B"], V["C"], V["E"]]
-    path = x.find_shortest_path_containing_all_nodes(c)
-    if path is not None:
-        x.print_path(path)
+    x.SSC()
+    # c = [V["A"], V["B"], V["C"], V["E"]]
+    # path = x.find_shortest_path_containing_all_nodes(c)
+    # if path is not None:
+    #    x.print_path(path)
 
