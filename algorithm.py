@@ -81,11 +81,7 @@ class Magic:
         return self.__find_path(c[0], c[0], c, edges)
 
     def print_path(self, path):
-        printable_path = []
-        for p in path:
-            text = "%s -> %s" % (p.start.name, p.end.name)
-            printable_path.append(text)
-        print "path: [", ", ".join(printable_path), "]"
+        print "path:", [str(s) for s in path]
 
     def __find_path(self, start_node, curent_node, component, edges, visited_nodes=list(), curent_path=list()):
         #print "\ncurent node:", curent_node.name

@@ -1,7 +1,6 @@
-import Components
-import Magic
+from Components import *
 import copy
-import pprint
+
 
 class core:
     def __init__(self):
@@ -9,12 +8,17 @@ class core:
         self.count = 0
 
     def StructInit(self, V, E):
-        for v in V :
-            v.color = "white"
+        for v in V:
+            node = V[v]
+            node.name = v
+            node.color = "white"
             for e in E:
-                if e.start == v:
-                    if (e.end) not in v.Adj:
-                        v.Adj.append(e.end)
+                edge = E[e]
+                if edge.start == node:
+                    if (edge.end) not in node.Adj:
+                        node.Adj.append(edge.end)
+        for e in E:
+            E[e].name = e
 
     def DetectCycle(self, u, v, f):
         for x in u.Pre:
@@ -23,8 +27,7 @@ class core:
             if x == v: #detekoval jsem smycku
                 self.output.append(reversed(f2)) # reverze retezce
             else:
-                self.DetectCycle(x,v, f2)
-
+                self.DetectCycle(x, v, f2)
 
     def DFS_Visit(self, u):
         u.color = "grey"
@@ -33,31 +36,44 @@ class core:
                 v.Pre.append(u)
                 self.DFS_Visit(v)
             else: # natrefil jsem na neco kde jsem uz byl budu hledat predka
-                self.DetectCycle(u, v, [v,u]) #jedu od konce
+
+                self.DetectCycle(u, v, [v, u]) #jedu od konce
         u.color = "black"
 
-
     def DFS(self, V, E):
-        self.StructInit(V, E)
         for v in V:
-            if v.color == "white":
-                self.DFS_Visit(v)
+            print v
+            node = V[v]
+            if node.color == "white":
+                self.DFS_Visit(node)
+            print "-"
 
     def GetResult(self):
         return self.output
 
 
-
 if __name__ == "__main__":
     core = core()
-    V = [Components.Node(0,0,"A"), Components.Node(0,0,"B"), Components.Node(0,0,"C"), Components.Node(0,0,"D")]
-    E = [Components.Edge(V[0],V[1]),Components.Edge(V[0],V[3]),Components.Edge(V[1],V[2]),Components.Edge(V[1],V[3]),
-         Components.Edge(V[2],V[0]),Components.Edge(V[3],V[2])]
+    V = {"A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0), "D": Node(0, 0)}
+    E = {0: Edge(V["A"], V["B"]), 2: Edge(V["B"], V["D"]), 4: Edge(V["D"], V["C"]), 1: Edge(V["C"], V["A"]),
+         6: Edge(V["A"], V["D"]),
+         5: Edge(V["B"], V["C"]),
+         #3: Edge(V["C"], V["D"]),
+    }
+
+    core.StructInit(V, E)
+
+    for v in V:
+        node = V[v]
+        sousede = []
+        for u in node.Adj:
+            sousede.append(u.name)
+        print v, "sousede:", ", ".join(sousede)
+
 
     core.DFS(V, E)
     r = core.GetResult()
-    #print len(r)
-    #for i in r:
-    #    for j in i:
-    #        print j.name
-    #    print "\n"
+    for i in r:
+        for j in i:
+            print j.name
+        print "-------"
