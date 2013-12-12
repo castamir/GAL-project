@@ -17,6 +17,7 @@ class Magic:
         self.time = 0
         self.TransponseEdges = {}
         self.TransponseNodes = {}
+        self.TransponseIndex = []
 
         for v in self.nodes:
             node = self.nodes[v]
@@ -68,54 +69,58 @@ class Magic:
         for e in E:
             E[e].name = e
 
+
     def DFS_visit(self, u):
         u.color = "grey"
-        self.time = self.time +1;
+        self.time = self.time +1
         u.d = self.time
         for v in u.Adj:
             if v.color == "white":
+                v.Pre.append(u)
                 self.DFS_visit(v)
         u.color = "black"
         self.time = self.time + 1
         u.f = self.time
 
-    def DFS(self, V, E):
-        for u in V:
+    def DFS(self, V, E, index):
+        print index
+        for u in index:
             V[u].Pre = []
         self.time = 0
-        for u in V:
+        for u in index:
             if V[u].color == "white":
                 self.DFS_visit(V[u])
 
     def TransponseGraph(self):
-        TransponseIndex = []
         TransponseNames = {}
         Nodes = {}
         for e in self.edges:
             self.TransponseEdges[e]= Edge(self.edges[e].end, self.edges[e].start)
-
+        Index = []
         for v in self.nodes:
             node = self.nodes[v]
             Nodes[node.f] = node
             TransponseNames[node.f] = v
-        TransponseIndex = Nodes.keys()
-        TransponseIndex.sort()
-        TransponseIndex.reverse()
-        for i in TransponseIndex:
+            Index.append(node.f)
+        Index = sorted(Index, reverse=True)
+       # print Index
+        for i in Index:
             self.TransponseNodes[TransponseNames[i]] = Nodes[i]
-
+            self.TransponseIndex.append(TransponseNames[i])
 
     # todo
     def SSC(self):
         self.StructInit(self.nodes, self.edges)
-        self.DFS(self.nodes, self.edges)
-
+       # print self.nodes.keys()
+        self.DFS(self.nodes, self.edges, self.nodes.keys())
+       # self.print_path((s.name, s.d, s.f) for s in self.nodes.values())
         self.TransponseGraph()
-
+        #print self.TransponseNodes.keys(), self.TransponseIndex
         self.StructInit(self.TransponseNodes, self.TransponseEdges)
-        self.DFS(self.TransponseNodes, self.TransponseEdges)
-
+        self.DFS(self.TransponseNodes, self.TransponseEdges, self.TransponseIndex)
+        #print self.TransponseIndex
         self.print_path(s.name for s in self.TransponseNodes.values())
+        self.print_path((s.name, s.d, s.f) for s in self.TransponseNodes.values())
         # nalezeni komponent
         self.add_color_to_components()
         self.next_step()
