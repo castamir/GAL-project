@@ -1,6 +1,7 @@
 from Tkinter import *
 import math
 from Components import *
+from algorithm import *
 
 HEIGHT = 450
 WIDTH = 600
@@ -23,11 +24,25 @@ class GAL:
         self.x = None
         self.y = None
 
+    def repaint(self):
+        for e in self.edges:
+            edge = self.edges[e]
+            self.canvas.itemconfigure(e, fill=edge.color)
+        for v in self.nodes:
+            node = self.nodes[v]
+            self.canvas.itemconfigure(v, fill=node.color)
+
     def render_buttons(self):
         self.buttons['start'] = b = Button(self.window, text="Start", compound=LEFT)
+        b.bind('<Button-1>', self.event_start)
         b.pack(side=RIGHT, padx=5, pady=5)
         self.buttons['reset'] = b = Button(self.window, text="Reset", compound=LEFT)
         b.pack(side=RIGHT, padx=5, pady=5)
+
+    def event_start(self, event):
+        x = Magic(self.nodes, self.edges)
+        self.repaint()
+        #c = [self.nodes[v] for v in self.nodes]
 
     def render_canvas(self):
         self.canvas = Canvas(self.window, height=HEIGHT, width=WIDTH, relief=RAISED, borderwidth=1)
@@ -46,12 +61,8 @@ class GAL:
         self._deactivate_node()
         if id in self.nodes:
             self.active_node = id
-            self.canvas.itemconfigure(id, fill="green")
 
     def _deactivate_node(self):
-        if self.active_node is not None:
-            if self.active_node in self.nodes:
-                self.canvas.itemconfigure(self.active_node, fill="blue")
         self.active_node = None
 
     def event_add_edge_start(self, event):
