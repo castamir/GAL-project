@@ -31,3 +31,6 @@ class Node:
     def get_coord(self):
         return self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r
 
+    def __str__(self):
+        return self.name
+

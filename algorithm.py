@@ -6,8 +6,8 @@ class Magic:
     def __init__(self, nodes, edges):
         if not isinstance(nodes, dict) or not isinstance(nodes, dict):
             raise Exception("Fuj, co jsi mi to dal? Ja chci slovnik s uzly a hranami!!!")
-        self.nodes = nodes
-        self.edges = edges
+        self.nodes = []
+        self.edges = []
         self.components = []  # seznam komponent; komponenta je seznam uzlu
         self.cycles = []
         self.steps = []  # toto mi vratis
@@ -15,17 +15,19 @@ class Magic:
         self.next_step()
         self.reset()
         self.time = 0
-        self.TransponseEdges = {}
-        self.TransponseNodes = {}
+        self.TransponseEdges = []
+        self.TransponseNodes = []
         self.TransponseIndex = []
 
-        for v in self.nodes:
-            node = self.nodes[v]
+        for v in nodes:
+            node = nodes[v]
             node.name = v
-        for e in self.edges:
-            edge = self.edges[e]
+            self.nodes.append(node)
+        for e in edges:
+            edge = edges[e]
             edge.name = e
             self.add_color(edge, "grey")
+            self.edges.append(edge)
 
     def reset(self):
         for v in self.nodes:
@@ -57,81 +59,80 @@ class Magic:
                             self.cycles.append(new_cycle)
 
     def StructInit(self, V, E):
-        for v in V:
-            node = V[v]
-            node.name = v
+        for node in V:
             node.color = "white"
-            for e in E:
-                edge = E[e]
+            node.Adj = []
+            for edge in E:
                 if edge.start == node:
                     if (edge.end) not in node.Adj:
                         node.Adj.append(edge.end)
-        for e in E:
-            E[e].name = e
 
-
-    def DFS_visit(self, u):
-        u.color = "grey"
-        self.time = self.time +1
-        u.d = self.time
-        for v in u.Adj:
+    def DFS_visit(self, node):
+        node.color = "grey"
+        self.time += 1
+        node.d = self.time
+        for v in node.Adj:
             if v.color == "white":
-                v.Pre.append(u)
                 self.DFS_visit(v)
-        u.color = "black"
-        self.time = self.time + 1
-        u.f = self.time
+        node.color = "black"
+        self.time += 1
+        node.f = self.time
 
-    def DFS(self, V, E, index):
-        for u in index:
-            V[u].Pre = []
+    def DFS(self, V, E):
         self.time = 0
-        for u in index:
-            if V[u].color == "white":
-                self.DFS_visit(V[u])
+        for node in V:
+            if node.color == "white":
+                self.DFS_visit(node)
 
     def TransponseGraph(self):
-        TransponseNames = {}
+        for edge in self.edges:
+            self.TransponseEdges.append(Edge(edge.end, edge.start))
         Nodes = {}
-        for e in self.edges:
-            self.TransponseEdges[e]= Edge(self.edges[e].end, self.edges[e].start)
         Index = []
-        for v in self.nodes:
-            node = self.nodes[v]
+        for node in self.nodes:
             Nodes[node.f] = node
-            TransponseNames[node.f] = v
             Index.append(node.f)
         Index = sorted(Index, reverse=True)
-       # print Index
-        for i in Index:
-            self.TransponseNodes[TransponseNames[i]] = Nodes[i]
-            self.TransponseIndex.append(TransponseNames[i])
+        for value in Index:
+            self.TransponseNodes.append(Nodes[value])
 
     def FindComponent(self):
-        comp = []
-        x = 0
-        self.components.append([])
-        for n in self.TransponseIndex:
-            self.components[x].append(self.TransponseNodes[n])
-            distance = self.TransponseNodes[n].f - self.TransponseNodes[n].d
-            if distance == 1:
-                self.components.append([])
-                x += 1
+        self.components = []
 
-        for i in self.components:
-            if len(i) == 0:
-                self.components.remove(i)
+        Nodes = {}
+        Index = []
+        ordered_nodes = []
+        for node in self.TransponseNodes:
+            Nodes[node.d] = node
+            Index.append(node.d)
+        Index = sorted(Index)
+        for value in Index:
+            ordered_nodes.append(Nodes[value])
 
+        if len(ordered_nodes) == 0:
+            return
+        while len(ordered_nodes) > 0:
+            first = ordered_nodes.pop(0)
+            current_component = [first]
+            if len(ordered_nodes) > 0:
+                while True:
+                    if len(ordered_nodes) == 0:
+                        break
+                    node = ordered_nodes.pop(0)
+                    if node.f < first.f:
+                        current_component.append(node)
+                    else:
+                        ordered_nodes.insert(0, node)
+                        break
+            self.components.append(current_component)
 
     # todo
     def SSC(self):
         self.StructInit(self.nodes, self.edges)
-        self.DFS(self.nodes, self.edges, self.nodes.keys())
-
+        self.DFS(self.nodes, self.edges)
         self.TransponseGraph()
-
         self.StructInit(self.TransponseNodes, self.TransponseEdges)
-        self.DFS(self.TransponseNodes, self.TransponseEdges, self.TransponseIndex)
+        self.DFS(self.TransponseNodes, self.TransponseEdges)
 
         self.FindComponent()
         # nalezeni komponent
@@ -148,14 +149,12 @@ class Magic:
 
     def add_color_to_components(self):
         for c in self.components:
-            for e in self.edges:
-                edge = self.edges[e]
-                if edge.start in c and edge.end in c:
-                    self.add_color(edge, "black")
+            edges = self.get_edges_from_component(c)
+            for edge in edges:
+                self.add_color(edge, "green")
 
     def find_shortest_path_containing_all_nodes(self, c):
         edges = self.get_edges_from_component(c)
-        print "edges:", [str(s) for s in edges]
         if len(edges) == 0:
             return []
         return self.__find_path(c[0], c[0], c, edges)
@@ -164,48 +163,47 @@ class Magic:
         print "path:", [str(s) for s in path]
 
     def __find_path(self, start_node, curent_node, component, edges, visited_nodes=list(), curent_path=list()):
-        #print "\ncurent node:", curent_node.name
-        #self.print_path(curent_path)
-        #print "visited nodes: [", ", ".join([v.name for v in visited_nodes]), "]"
         for e, edge in enumerate(edges):
             if edge not in curent_path and edge.start == curent_node and edge.end in component:
                 if edge.end in visited_nodes:
-                    #print edge.end.name, "je ve visited"
                     visited = []
                 else:
-                    #print edge.end.name, "nebyl ve visited"
                     visited = [edge.end]
-                if len(visited_nodes)+1 == len(component) and edge.end == start_node:
-                    #print "ukoncovaci podminka"
+                if len(visited_nodes) + 1 == len(component) and edge.end == start_node:
                     # nasel jsem posledni
                     return curent_path + [edge]
-                found = self.__find_path(start_node, edge.end, component, edges, visited_nodes + visited, curent_path + [edge])
+                found = self.__find_path(start_node, edge.end, component, edges, visited_nodes + visited,
+                                         curent_path + [edge])
                 if found is not None:
-                    #print "druha ukoncovaci podminka - z uzlu", edge.end.name
                     # tato hrana lezi na spravne ceste, ktera tady jeste nebyla znama cela
                     return found
-        #print "nebyla nalezena zadna cesta z uzlu", curent_node.name
         return None
-
 
     def get_edges_from_component(self, c):
         edges = []
-        for e in self.edges:
-            edge = self.edges[e]
+        for edge in self.edges:
             if edge.start in c and edge.end in c:
                 edges.append(edge)
         return edges
 
+
 if __name__ == "__main__":
-    V = {"A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0), "D": Node(0, 0), "E": Node(0, 0)}
+
+    V = {"A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0), "D": Node(0, 0), "E": Node(0, 0), "F": Node(0, 0),
+         "G": Node(0, 0)
+    }
     E = {
         #0: Edge(V["A"], V["B"]), 2: Edge(V["B"], V["D"]), 4: Edge(V["D"], V["C"]), 1: Edge(V["C"], V["A"]),
-         6: Edge(V["A"], V["B"]),
-         7: Edge(V["B"], V["C"]),
-         8: Edge(V["C"], V["D"]),
-         9: Edge(V["C"], V["E"]),  # mimo
-         10: Edge(V["E"], V["A"]),
-         11: Edge(V["B"], V["A"]),  # vnitrni cyklus
+        6: Edge(V["A"], V["B"]),
+        7: Edge(V["B"], V["C"]),
+        9: Edge(V["C"], V["D"]), # mimo
+        10: Edge(V["D"], V["A"]),
+
+        11: Edge(V["B"], V["A"]), # vnitrni cyklus
+
+        12: Edge(V["C"], V["E"]), # mimo
+        13: Edge(V["E"], V["F"]), # mimo
+        8: Edge(V["F"], V["E"]),
     }
 
     x = Magic(V, E)
@@ -214,9 +212,4 @@ if __name__ == "__main__":
         for j in i:
             print j.name
         print "xxx"
-
-    # c = [V["A"], V["B"], V["C"], V["E"]]
-    # path = x.find_shortest_path_containing_all_nodes(c)
-    # if path is not None:
-    #    x.print_path(path)
 
