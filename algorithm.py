@@ -55,11 +55,11 @@ class Magic:
         return newEdges
 
     def DetErrCycle(self, path, node):
-        for i in range(0, len(path)-1):
+        for i in range(0, len(path) - 1):
             if path[i] == node:
-                for j in range(i+1, len(path)-1):
+                for j in range(i + 1, len(path) - 1):
                     if path[j] == node:
-                        if path[i+1] == path[j+1]:
+                        if path[i + 1] == path[j + 1]:
                             return True
 
         return False
@@ -73,7 +73,7 @@ class Magic:
             return [node] + self.detectPrePath(node, det, path + [node])
         return []
 
-    def cycle(self,start, path, edges, init):
+    def cycle(self, start, path, edges, init):
         for node in start.Adj:
             node.Pre = []
             node.Pre.append(start)
@@ -82,18 +82,17 @@ class Magic:
                 if nodes == []:
                     continue
                 nodes = [node] + nodes
-                cycleEdges = self.edgesFromNodes(nodes[::-1] , edges)
+                cycleEdges = self.edgesFromNodes(nodes[::-1], edges)
                 self.cycles.append(cycleEdges)
             if node != init:
                 self.cycle(node, path + [node], edges, init)
-
 
 
     def detect_cycles_in(self):
         self.SSC()  # step + odbarveni zbytecnych hran
         for c in self.components:
             edges = self.get_edges_from_component(c)
-            self.cycle(c[0],[c[0]], edges, c[0])
+            self.cycle(c[0], [c[0]], edges, c[0])
 
     def StructInit(self, V, E):
         for node in V:
@@ -182,37 +181,57 @@ class Magic:
             for edge in edges:
                 self.add_color(edge, "green")
 
-    def find_shortest_path_containing_all_nodes(self, c):
+    def find_path_containing_all_nodes_from_component(self, c):
         edges = self.get_edges_from_component(c)
+        print "edges from component:"
+        print [str(e) for e in edges]
         if len(edges) == 0:
             return []
+
         return self.__find_path(c[0], c[0], c, edges)
 
     def print_path(self, path):
         print "path:", [str(s) for s in path]
 
     def __find_path(self, start_node, curent_node, component, edges, visited_nodes=list(), curent_path=list()):
-        for e, edge in enumerate(edges):
+        print "starting node", str(curent_node)
+        for edge in edges:
             if edge not in curent_path and edge.start == curent_node and edge.end in component:
+                print "good edge", str(edge)
                 if edge.end in visited_nodes:
                     visited = []
                 else:
                     visited = [edge.end]
-                if len(visited_nodes) + 1 == len(component) and edge.end == start_node:
+                missing = self.__get_missing_elements_from_component(component, visited_nodes)
+                print [str(m) for m in missing]
+                if len(missing) == 1 and missing[0] == start_node and edge.end == start_node:
                     # nasel jsem posledni
+                    print "ending node", str(curent_node), "because last was found"
                     return curent_path + [edge]
                 found = self.__find_path(start_node, edge.end, component, edges, visited_nodes + visited,
                                          curent_path + [edge])
-                if found is not []:
+                if found is not None:
                     # tato hrana lezi na spravne ceste, ktera tady jeste nebyla znama cela
+                    print "ending node", str(curent_node), "good path"
                     return found
-        return []
+                else:
+                    print "continue with", str(curent_node)
+                    pass
+            print "ending node", str(curent_node), "nothing found"
+        return None
+
+    def __get_missing_elements_from_component(self, c, visited_nodes):
+        missing = []
+        for node in c:
+            if node not in visited_nodes:
+                missing.append(node)
+        return missing
 
     def get_edges_from_component(self, c):
         for node in c:
             node.Pre = []
             node.Adj = []
-         #   node.Checked = []
+            #   node.Checked = []
         edges = []
         for edge in self.edges:
             if edge.start in c and edge.end in c:
@@ -223,33 +242,49 @@ class Magic:
 
 if __name__ == "__main__":
 
-    V = {"A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0)#, "D": Node(0, 0), "E": Node(0, 0), "F": Node(0, 0),
-         #"G": Node(0, 0)
+    V = {
+        "A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0),
+         "D": Node(0, 0), "E": Node(0, 0), "F": Node(0, 0), "G": Node(0, 0), "H": Node(0, 0)
     }
     E = {
         #0: Edge(V["A"], V["B"]), 2: Edge(V["B"], V["D"]), 4: Edge(V["D"], V["C"]), 1: Edge(V["C"], V["A"]),
-        6: Edge(V["A"], V["B"]),
-        7: Edge(V["B"], V["C"]),
-        9: Edge(V["C"], V["B"]), # mimo
-        10: Edge(V["B"], V["A"]),
+        #6: Edge(V["A"], V["B"]),
+        #7: Edge(V["B"], V["C"]),
+        #9: Edge(V["C"], V["B"]), # mimo
+        #10: Edge(V["B"], V["A"]),
 
-        #11: Edge(V["B"], V["A"]), # vnitrni cyklus
-
-       # 14: Edge(V["C"], V["A"]), # mimo
-        #12: Edge(V["C"], V["E"]), # mimo
-        #13: Edge(V["E"], V["F"]), # mimo
-        #8: Edge(V["F"], V["E"]),
+        11: Edge(V["D"], V["E"]),
+        12: Edge(V["E"], V["F"]),
+        13: Edge(V["F"], V["G"]),
+        14: Edge(V["G"], V["D"]),
+        15: Edge(V["E"], V["G"]),
+        16: Edge(V["E"], V["H"]),
+        17: Edge(V["H"], V["E"]),
     }
 
     x = Magic(V, E)
     x.SSC()
-    x.detect_cycles_in()
-    print len(x.cycles)
-    for i in x.cycles:
-        for e in i:
-            #print e.name
-            print e.start, "->", e.end
-        print "---------------"
+    #x.detect_cycles_in()
+    #print len(x.cycles)
+    #for i in x.cycles:
+    #    for e in i:
+    #        print e.name
+    #print e.start, "->", e.end
+    #print "---------------"
+
+    for c in x.components:
+        print "new component:"
+        print [str(n) for n in c]
+        path = x.find_path_containing_all_nodes_from_component(c)
+        print "=================================="
+        if path is not None:
+            print "longest path:"
+            print [str(e) for e in path]
+
+            print "\n"
+        else:
+            print "problem"
+
 
 
 
