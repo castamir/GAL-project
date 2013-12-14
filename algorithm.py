@@ -9,7 +9,7 @@ class Magic:
         self.nodes = []
         self.edges = []
         self.components = []  # seznam komponent; komponenta je seznam uzlu
-        self.cycles = []
+        self.cycles = [] #posloupnost hran
         self.steps = []  # toto mi vratis
         self.current_step = None
         self.next_step()
@@ -17,7 +17,6 @@ class Magic:
         self.time = 0
         self.TransponseEdges = []
         self.TransponseNodes = []
-        self.TransponseIndex = []
 
         for v in nodes:
             node = nodes[v]
@@ -44,19 +43,61 @@ class Magic:
         self.steps.append({})
         self.current_step = self.steps[-1]
 
+    def edgesFromNodes(self, nodes, edges):
+        newEdges = []
+        s = nodes.pop(0)
+        while len(nodes) > 0:
+            en = nodes.pop(0)
+            for e in edges:
+                if e.start == s and en == e.end:
+                    newEdges.append(e)
+            s = en
+        return newEdges
+
+    def detectPrePath(self, start, det): #detekce podle predchudcu
+        for node in start.Pre:
+            if node == det:
+                return [node]
+            return [node] + self.detectPrePath(node, det)
+        return []
+
+    def cycle(self,start, path, edges, init):
+        for node in start.Adj:
+            node.Pre = []
+            node.Pre.append(start)
+            print "path", len(path)
+            print start.name
+            if node in path:
+               # print node.name
+                #velky
+                nodes = self.detectPrePath(node, node) #detekuju pozpatku
+                nodes = [node] + nodes
+                cycleEdges = self.edgesFromNodes(nodes[::-1] , edges)
+                self.cycles.append(cycleEdges)
+            if node != init:
+                self.cycle(node, path + [node], edges, init)
+
+
+
     def detect_cycles_in(self):
         self.SSC()  # step + odbarveni zbytecnych hran
         for c in self.components:
-            longest_path = self.find_shortest_path_containing_all_nodes(c)  # step + obarveni nejdelsi cesty
-            if len(longest_path) > 1:
-                self.cycles.append(longest_path)
-                reversed_path = reversed(longest_path)
-                for node in reversed_path:
-                    for pre in node.Pre:
-                        if pre != self.find_pre_in_longest_path(path=reversed_path, node=pre): # step
-                            new_cycle = self.find_subcycle_from(path=reversed_path, node_from=node,
-                                                                node_pre=pre) #obarveni
-                            self.cycles.append(new_cycle)
+            edges = self.get_edges_from_component(c)
+            self.cycle(c[0],[c[0]], edges, c[0])
+            #self.find_cycles(c, edges)
+            # longest_path = self.find_shortest_path_containing_all_nodes(c)  # step + obarveni nejdelsi cesty
+            # if len(longest_path) > 1:
+            #     self.cycles.append(longest_path)
+            #     reversed_path = reversed(longest_path)
+            #     #TODO: PREPSAT DETEKCI
+            #     ordered_nodes = [edge.start for edge in longest_path]
+            #     for node in reversed_path:
+            #         for pre in node.Pre:
+            #             print pre.name
+            #             if pre != self.find_pre_in_longest_path(path=reversed_path, node=pre): # step
+            #                 new_cycle = self.find_subcycle_from(path=reversed_path, node_from=node,
+            #                                                     node_pre=pre) #obarveni
+            #                 self.cycles.append(new_cycle)
 
     def StructInit(self, V, E):
         for node in V:
@@ -139,13 +180,29 @@ class Magic:
         self.add_color_to_components()
         self.next_step()
 
-    # todo
-    def find_pre_in_longest_path(self, path, node):
-        return Node(0, 0)
+    # def set_nodes_pre_adj(self,nodes, edges):
+    #     for node in nodes:
+    #         node.Pre = []
+    #         node.Adj = []
+    #     for edge in edges:
+    #         edge.end.Pre.append(edge.start)
+    #         edge.start.Adj.append(edge.end)
 
     # todo
-    def find_subcycle_from(self, path, node_from, node_pre):
-        return []
+    def find_cycles(self, nodes, edges):
+        pass
+
+        # self.set_nodes_pre_adj(nodes, edges)
+
+    # # todo
+    # def find_pre_in_longest_path(self, path, node):
+    #     for i in path:
+    #         print i.start, "->", i.end
+    #     return Node(0, 0)
+    #
+    # # todo
+    # def find_subcycle_from(self, path, node_from, node_pre):
+    #     return []
 
     def add_color_to_components(self):
         for c in self.components:
@@ -174,16 +231,20 @@ class Magic:
                     return curent_path + [edge]
                 found = self.__find_path(start_node, edge.end, component, edges, visited_nodes + visited,
                                          curent_path + [edge])
-                if found is not None:
+                if found is not []:
                     # tato hrana lezi na spravne ceste, ktera tady jeste nebyla znama cela
                     return found
-        return None
+        return []
 
     def get_edges_from_component(self, c):
+        for node in c:
+            node.Pre = []
+            node.Adj = []
         edges = []
         for edge in self.edges:
             if edge.start in c and edge.end in c:
                 edges.append(edge)
+                edge.start.Adj.append(edge.end)
         return edges
 
 
@@ -201,6 +262,7 @@ if __name__ == "__main__":
 
         11: Edge(V["B"], V["A"]), # vnitrni cyklus
 
+       # 14: Edge(V["C"], V["A"]), # mimo
         12: Edge(V["C"], V["E"]), # mimo
         13: Edge(V["E"], V["F"]), # mimo
         8: Edge(V["F"], V["E"]),
@@ -208,8 +270,25 @@ if __name__ == "__main__":
 
     x = Magic(V, E)
     x.SSC()
-    for i in x.components:
-        for j in i:
-            print j.name
-        print "xxx"
+    x.detect_cycles_in()
+    print len(x.cycles)
+    for i in x.cycles:
+        for e in i:
+            #print e.name
+            print e.start, "->", e.end
+        print "---------------"
+
+    # for i in x.components:
+    #     s = ""
+    #     for z in i:
+    #         s +=  z.name
+    #         s += " "
+    #     print s
+    #     a = x.count_graph_edges(i)
+    #     for b in a:
+    #         print b.start, " -> ", b.end
+    #for i in x.components:
+    #    for j in i:
+    #        print j.name
+    #    print "xxx"
 
