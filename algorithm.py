@@ -65,8 +65,8 @@ class Magic:
         for node in start.Adj:
             node.Pre = []
             node.Pre.append(start)
-            print "path", len(path)
-            print start.name
+            #print "path", len(path)
+            #print start.name
             if node in path:
                # print node.name
                 #velky
