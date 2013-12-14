@@ -194,30 +194,30 @@ class Magic:
         print "path:", [str(s) for s in path]
 
     def __find_path(self, start_node, curent_node, component, edges, visited_nodes=list(), curent_path=list()):
-        print "starting node", str(curent_node)
+        #print "starting node", str(curent_node)
         for edge in edges:
             if edge not in curent_path and edge.start == curent_node and edge.end in component:
-                print "good edge", str(edge)
+                #print "good edge", str(edge)
                 if edge.end in visited_nodes:
                     visited = []
                 else:
                     visited = [edge.end]
                 missing = self.__get_missing_elements_from_component(component, visited_nodes)
-                print [str(m) for m in missing]
-                if len(missing) == 1 and missing[0] == start_node and edge.end == start_node:
+                #print [str(m) for m in missing]
+                if (len(missing) == 1 and missing[0] == start_node or len(missing) == 0) and edge.end == start_node:
                     # nasel jsem posledni
-                    print "ending node", str(curent_node), "because last was found"
+                    #print "ending node", str(curent_node), "because last was found"
                     return curent_path + [edge]
                 found = self.__find_path(start_node, edge.end, component, edges, visited_nodes + visited,
                                          curent_path + [edge])
                 if found is not None:
                     # tato hrana lezi na spravne ceste, ktera tady jeste nebyla znama cela
-                    print "ending node", str(curent_node), "good path"
+                    #print "ending node", str(curent_node), "good path"
                     return found
                 else:
-                    print "continue with", str(curent_node)
+                    #print "continue with", str(curent_node)
                     pass
-            print "ending node", str(curent_node), "nothing found"
+        #print "ending node", str(curent_node), "nothing found"
         return None
 
     def __get_missing_elements_from_component(self, c, visited_nodes):
@@ -248,10 +248,10 @@ if __name__ == "__main__":
     }
     E = {
         #0: Edge(V["A"], V["B"]), 2: Edge(V["B"], V["D"]), 4: Edge(V["D"], V["C"]), 1: Edge(V["C"], V["A"]),
-        #6: Edge(V["A"], V["B"]),
-        #7: Edge(V["B"], V["C"]),
-        #9: Edge(V["C"], V["B"]), # mimo
-        #10: Edge(V["B"], V["A"]),
+        6: Edge(V["A"], V["B"]),
+        7: Edge(V["B"], V["C"]),
+        9: Edge(V["C"], V["B"]),
+        10: Edge(V["B"], V["A"]),
 
         11: Edge(V["D"], V["E"]),
         12: Edge(V["E"], V["F"]),
@@ -276,7 +276,7 @@ if __name__ == "__main__":
         print "new component:"
         print [str(n) for n in c]
         path = x.find_path_containing_all_nodes_from_component(c)
-        print "=================================="
+        #print "=================================="
         if path is not None:
             print "longest path:"
             print [str(e) for e in path]
