@@ -41,15 +41,10 @@ class GAL:
 
     def event_start(self, event):
         x = Magic(self.nodes, self.edges)
-
         x.detect_cycles_in()
-        #print len(x.cycles)
         for i in x.cycles:
             print [str(e) for e in i]
-            #for e in i:
-            #    print e.name
-                #print e.start, "->", e.end
-            #print "---------------"
+
         self.repaint()
         #c = [self.nodes[v] for v in self.nodes]
 

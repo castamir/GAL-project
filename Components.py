@@ -27,6 +27,7 @@ class Node:
         self.Pre = []
         self.d = None
         self.f = None
+        self.checked = []
 
     def get_coord(self):
         return self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r
