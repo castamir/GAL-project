@@ -54,7 +54,14 @@ class Magic:
             s = en
         return newEdges
 
-
+    def is_in_cycles(self, tmp):
+        num = len(tmp)
+        while num >= 0:
+            tmp.append(tmp.pop(0))
+            num -= 1
+            if tmp in self.cycles:
+                return True
+        return False
 
 
     def detect_cycles_in(self):
@@ -71,6 +78,7 @@ class Magic:
                 for e in edges:
                     if e.start == edge.start and e.end != edge.end and e not in zkratky:
                         zkratky.append(e)
+            print [str(e) for e in longestPath]
             print [str(e) for e in zkratky]
             visit = []
             #for e in longestPath:
@@ -90,23 +98,30 @@ class Magic:
                     print z,"long",[str(x) for x in longestCopy]
                    # print z,":::",[str(x) for x in longestCopy]
 
+                    path = []
                     for e in longestCopy:
+                        path.append(e)
+                        print "test", [str(p) for p in path], [str(z)], [str(e)]
+                        if z.start == e.end:
+                            if not self.is_in_cycles([z] + path):
+                                print "ulozeni", [str(p) for p in [z] + path[:]]
+                                self.cycles.append([z] + path[:])
                        # if e.end not in visit:
-                        if z.end == e.start:
-                            path = []
-                            for i in range(longestCopy.index(e), len(longestCopy)):
-                                path.append(longestCopy[i])
-                                if longestCopy[i].end == z.start:
-                                    tmp = [z] + path[:]
-                                    num = len(tmp)
-                                    flag = False
-                                    while num >= 0:
-                                        tmp.append(tmp.pop(0))
-                                        num = num - 1
-                                        if tmp in self.cycles:
-                                            flag = True
-                                    if  not flag:
-                                        self.cycles.append([z] + path[:])
+                       # if z.end == e.start:
+                       #     path = []
+                       #     for i in range(longestCopy.index(e), len(longestCopy)):
+                       #         path.append(longestCopy[i])
+                       #         if longestCopy[i].end == z.start:
+                       #             tmp = [z] + path[:]
+                       #             num = len(tmp)
+                       #             flag = False
+                       #             while num >= 0:
+                       #                 tmp.append(tmp.pop(0))
+                       #                 num = num - 1
+                       #                 if tmp in self.cycles:
+                       #                     flag = True
+                       #             if  not flag:
+                       #                 self.cycles.append([z] + path[:])
                     count -= 1
 
             visit.append(e.start)
@@ -346,7 +361,7 @@ if __name__ == "__main__":
 
     for cycle in x.cycles:
         print "-------------------"
-        print "cycle:", [str(i) for i in cycle]
+        print "cycle:", [str(i.start) for i in cycle] + [str(cycle[-1].end)]
         print "-------------------"
 
     print "cycle", len(x.cycles), "comp", len(x.components)
