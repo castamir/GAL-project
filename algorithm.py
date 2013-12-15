@@ -78,13 +78,20 @@ class Magic:
             longestCopy = longestPath[:]
             for z in zkratky:
 
-                while longestCopy[0].start != z.end:
+                count = 0
+                for i in longestPath:
+                    if i.start == z.end:
+                        count += 1
+                print z, count
+                while count > 0:
                     longestCopy.append(longestCopy.pop(0))
-                print z,"long",[str(x) for x in longestCopy]
-               # print z,":::",[str(x) for x in longestCopy]
+                    while longestCopy[0].start != z.end:
+                        longestCopy.append(longestCopy.pop(0))
+                    print z,"long",[str(x) for x in longestCopy]
+                   # print z,":::",[str(x) for x in longestCopy]
 
-                for e in longestCopy:
-                    if e.end not in visit:
+                    for e in longestCopy:
+                       # if e.end not in visit:
                         if z.end == e.start:
                             path = []
                             for i in range(longestCopy.index(e), len(longestCopy)):
@@ -93,13 +100,14 @@ class Magic:
                                     tmp = [z] + path[:]
                                     num = len(tmp)
                                     flag = False
-                                    while num > 0:
+                                    while num >= 0:
                                         tmp.append(tmp.pop(0))
                                         num = num - 1
                                         if tmp in self.cycles:
                                             flag = True
                                     if  not flag:
                                         self.cycles.append([z] + path[:])
+                    count -= 1
 
             visit.append(e.start)
 # ##############################
@@ -261,54 +269,54 @@ class Magic:
 
 if __name__ == "__main__":
 
-    V = {
-        "A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0),
-        "D": Node(0, 0), "E": Node(0, 0), "F": Node(0, 0), "G": Node(0, 0), "H": Node(0, 0)
-    }
-    E = {
-        #0: Edge(V["A"], V["B"]), 2: Edge(V["B"], V["D"]), 4: Edge(V["D"], V["C"]), 1: Edge(V["C"], V["A"]),
-        6: Edge(V["A"], V["B"]),
-        7: Edge(V["B"], V["C"]),
-        9: Edge(V["C"], V["B"]),
-        10: Edge(V["B"], V["A"]),
-
-        11: Edge(V["D"], V["E"]),
-        12: Edge(V["E"], V["F"]),
-        13: Edge(V["F"], V["G"]),
-        14: Edge(V["G"], V["D"]),
-        15: Edge(V["E"], V["G"]),
-        16: Edge(V["E"], V["H"]),
-        17: Edge(V["H"], V["E"]),
-    }
-
     # V = {
     #     "A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0),
-    #     "D": Node(0, 0), "E": Node(0, 0), "Z": Node(0, 0),
+    #     "D": Node(0, 0), "E": Node(0, 0), "F": Node(0, 0), "G": Node(0, 0), "H": Node(0, 0)
     # }
     # E = {
+    #     #0: Edge(V["A"], V["B"]), 2: Edge(V["B"], V["D"]), 4: Edge(V["D"], V["C"]), 1: Edge(V["C"], V["A"]),
+    #     6: Edge(V["A"], V["B"]),
+    #     7: Edge(V["B"], V["C"]),
+    #     9: Edge(V["C"], V["B"]),
+    #     10: Edge(V["B"], V["A"]),
     #
-    #
-    #     11: Edge(V["A"], V["B"]),
-    #     12: Edge(V["B"], V["C"]),
-    #     13: Edge(V["C"], V["D"]),
-    #     14: Edge(V["D"], V["A"]),
-    #
-    #     15: Edge(V["B"], V["D"]),
-    #     16: Edge(V["D"], V["E"]),
-    #     17: Edge(V["E"], V["D"]),
-    #
-    #     18: Edge(V["A"], V["Z"]),
-    #     19: Edge(V["Z"], V["A"]),
-    #
-    #     # druhej priklad
-    #
-    #     # 6: Edge(V["A"], V["B"]),
-    #     # 7: Edge(V["B"], V["C"]),
-    #     # 5: Edge(V["C"], V["B"]),
-    #     # 4: Edge(V["B"], V["A"]),
-    #
-    #
+    #     11: Edge(V["D"], V["E"]),
+    #     12: Edge(V["E"], V["F"]),
+    #     13: Edge(V["F"], V["G"]),
+    #     14: Edge(V["G"], V["D"]),
+    #     15: Edge(V["E"], V["G"]),
+    #     16: Edge(V["E"], V["H"]),
+    #     17: Edge(V["H"], V["E"]),
     # }
+
+    V = {
+        "A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0),
+        "D": Node(0, 0), "E": Node(0, 0), "Z": Node(0, 0),
+    }
+    E = {
+
+
+        11: Edge(V["A"], V["B"]),
+        12: Edge(V["B"], V["C"]),
+        13: Edge(V["C"], V["D"]),
+        14: Edge(V["D"], V["A"]),
+
+        15: Edge(V["B"], V["D"]),
+        16: Edge(V["D"], V["E"]),
+        17: Edge(V["E"], V["D"]),
+
+        18: Edge(V["A"], V["Z"]),
+        19: Edge(V["Z"], V["A"]),
+
+        # druhej priklad
+
+        # 6: Edge(V["A"], V["B"]),
+        # 7: Edge(V["B"], V["C"]),
+        # 5: Edge(V["C"], V["B"]),
+        # 4: Edge(V["B"], V["A"]),
+
+
+    }
 
     x = Magic(V, E)
    # x.SSC()
