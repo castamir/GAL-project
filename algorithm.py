@@ -43,73 +43,145 @@ class Magic:
         self.steps.append({})
         self.current_step = self.steps[-1]
 
-    def edgesFromNodes(self, nodes, edges):
+    def find_path_from_nodes(self, nodes, edges):
         newEdges = []
-        s = nodes.pop(0)
-        while len(nodes) > 0:
-            en = nodes.pop(0)
-            for e in edges:
-                if e.start == s and en == e.end:
-                    newEdges.append(e)
-            s = en
+        current_node = nodes.pop(0)
+        for node in nodes:
+            for edge in edges:
+                if edge.start == current_node and edge.end == node:
+                    newEdges.append(edge)
+                    break
+            current_node = node
         return newEdges
 
 
 
+    def is_in_cycles(self, tmp):
+        num = len(tmp)
+        while num >= 0:
+            tmp.append(tmp.pop(0))
+            num -= 1
+            if tmp in self.cycles:
+                return True
+        return False
+
+    def walkthrow(self, find, start, tmp, out):
+        for p in start.Pre:
+            if p == find:
+                if tmp[:] + [p] not in out:
+                    out.append(tmp[:] + [p])
+            else:
+                if p not in tmp:
+                    self.walkthrow(find, p, tmp + [p], out)
 
     def detect_cycles_in(self):
         self.SSC()  # step + odbarveni zbytecnych hran
+        out = []
+        output = []
         for c in self.components:
-            edges = self.get_edges_from_component(c)
+            # for a in c:
+            #     print a, "-",[str(x) for x in a.Adj]
+            expanded = []
+            for v in c:
+                edges = self.get_edges_from_component(c)
+                to_expand = [v]
+                expanded = []
+                while len(to_expand) > 0:
+                    #print [str(i) for i in to_expand]
+                    node = to_expand.pop(0)
+                    for n in node.Adj:
+                        n.Pre.append(node)
+                        if n == v:
+                            self.walkthrow(v, n,[n], out)
+                            continue
+                        else:
+                            if n not in expanded and n != node:
+                                to_expand.append(n)
+                    expanded.append(node)
+
+                for o in out:
+                    if o not in output:
+                        output.append(o)
+
+            hrany = self.get_edges_from_component(c)
+            # temporal = []
+            for i in output:
+                newEdges = self.find_path_from_nodes(i[:], hrany)
+                print len(newEdges)
+                # temporal.append(newEdges[:])
+                # for a in temporal:
+                #     print len(a)
+
+                # newEdges = []
+                # startN = i.pop(0)
+                # while len(i) > 0:
+                #     endN = i.pop(0)
+                #     for h in hrany:
+                #         if h.start == startN and h.end == endN:
+                #             newEdges.append(h)
+                #     startN = endN
+                # temporal.append(newEdges[:])
+                #newEdges = self.edgesFromNodes(i, hrany)
+                #print [str(a) for a in newEdges]
+
+                # if len(newEdges) == 0:
+                #     continue
+                # print [str(a) for a in i]
+                # print [str(ee)for ee in newEdges]
+                # if not self.is_in_cycles(temporal):
+                #     self.cycles.append(newEdges)
+                # for i in output:
+                #     i.pop();
+
             #print [str(e) for e in edges]
-            longestPath = self.find_path_containing_all_nodes_from_component(c)
-            if longestPath == []:
-                continue
+            # longestPath = self.find_path_containing_all_nodes_from_component(c)
+            # if longestPath == []:
+            #     continue
+            #
+            # zkratky = []
+            # for edge in longestPath:
+            #     for e in edges:
+            #         if e.start == edge.start and e.end != edge.end and e not in zkratky:
+            #             zkratky.append(e)
+            # print [str(e) for e in zkratky]
+            # visit = []
+            # #for e in longestPath:
+            #
+            # longestCopy = longestPath[:]
+            # for z in zkratky:
+            #
+            #     count = 0
+            #     for i in longestPath:
+            #         if i.start == z.end:
+            #             count += 1
+            #     print z, count
+            #     while count > 0:
+            #         longestCopy.append(longestCopy.pop(0))
+            #         while longestCopy[0].start != z.end:
+            #             longestCopy.append(longestCopy.pop(0))
+            #         print z,"long",[str(x) for x in longestCopy]
+            #        # print z,":::",[str(x) for x in longestCopy]
+            #
+            #         for e in longestCopy:
+            #            # if e.end not in visit:
+            #             if z.end == e.start:
+            #                 path = []
+            #                 for i in range(longestCopy.index(e), len(longestCopy)):
+            #                     path.append(longestCopy[i])
+            #                     if longestCopy[i].end == z.start:
+            #                         tmp = [z] + path[:]
+            #                         num = len(tmp)
+            #                         flag = False
+            #                         while num >= 0:
+            #                             tmp.append(tmp.pop(0))
+            #                             num = num - 1
+            #                             if tmp in self.cycles:
+            #                                 flag = True
+            #                         if not flag:
+            #                             self.cycles.append([z] + path[:])
+            #         count -= 1
 
-            zkratky = []
-            for edge in longestPath:
-                for e in edges:
-                    if e.start == edge.start and e.end != edge.end and e not in zkratky:
-                        zkratky.append(e)
-            print [str(e) for e in zkratky]
-            visit = []
-            #for e in longestPath:
-
-            longestCopy = longestPath[:]
-            for z in zkratky:
-
-                count = 0
-                for i in longestPath:
-                    if i.start == z.end:
-                        count += 1
-                print z, count
-                while count > 0:
-                    longestCopy.append(longestCopy.pop(0))
-                    while longestCopy[0].start != z.end:
-                        longestCopy.append(longestCopy.pop(0))
-                    print z,"long",[str(x) for x in longestCopy]
-                   # print z,":::",[str(x) for x in longestCopy]
-
-                    for e in longestCopy:
-                       # if e.end not in visit:
-                        if z.end == e.start:
-                            path = []
-                            for i in range(longestCopy.index(e), len(longestCopy)):
-                                path.append(longestCopy[i])
-                                if longestCopy[i].end == z.start:
-                                    tmp = [z] + path[:]
-                                    num = len(tmp)
-                                    flag = False
-                                    while num >= 0:
-                                        tmp.append(tmp.pop(0))
-                                        num = num - 1
-                                        if tmp in self.cycles:
-                                            flag = True
-                                    if  not flag:
-                                        self.cycles.append([z] + path[:])
-                    count -= 1
-
-            visit.append(e.start)
+           # visit.append(e.start)
 # ##############################
 # for hrana in nejdelsi_cesta:
     # seznam_zkratek = []  # z hrana.start
