@@ -56,7 +56,7 @@ class Magic:
 
     def is_in_cycles(self, tmp):
         num = len(tmp)
-        while num >= 0:
+        while num > 0:
             tmp.append(tmp.pop(0))
             num -= 1
             if tmp in self.cycles:

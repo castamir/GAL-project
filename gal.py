@@ -8,13 +8,14 @@ from ttk import Frame, Button, Label, Style
 HEIGHT = 450
 WIDTH = 600
 
+
 class GAL:
     def __init__(self):
         self.locked = False
         self.window = Tk()
         self.window.title("Detekce cyklů v grafu")
         self.window.geometry("700x500+50+50")
-        self.window.resizable(0,0)
+        self.window.resizable(0, 0)
 
         self.canvas = None
         self.buttons = {}
@@ -27,6 +28,8 @@ class GAL:
         self.start = None
         self.x = None
         self.y = None
+        self.cycles = None
+        self.cycle_index = None
 
     def repaint(self):
         for e in self.edges:
@@ -39,31 +42,81 @@ class GAL:
     def render_buttons(self):
         self.buttons['start'] = b = Button(self.window, text="Start", compound=LEFT)
         b.bind('<Button-1>', self.event_start)
-        b.grid(row=5, column=0, padx=5)
         b.pack(side=RIGHT, padx=5, pady=5)
+
         self.buttons['reset'] = b = Button(self.window, text="Reset", compound=LEFT)
         b.bind('<Button-1>', self.event_reset)
-        b.grid(row=5, column=1, padx=5)
+        b.pack(side=RIGHT, padx=5, pady=5)
+
+        self.buttons['next'] = b = Button(self.window, text="Next", compound=LEFT, state=DISABLED)
+        b.bind('<Button-1>', self.event_next_cycle)
+        b.pack(side=RIGHT, padx=5, pady=5)
+
+        self.buttons['prev'] = b = Button(self.window, text="Prev", compound=LEFT, state=DISABLED)
+        b.bind('<Button-1>', self.event_prev_cycle)
         b.pack(side=RIGHT, padx=5, pady=5)
 
     def event_reset(self, event):
         self.nodes = {}
         self.edges = {}
         self.canvas.delete("all")
+        self.buttons['prev'].config(state=DISABLED)
+        self.buttons['next'].config(state=DISABLED)
+
+    def reset_colors(self):
+        for n in self.nodes:
+            self.nodes[n].color = "white"
+        for e in self.edges:
+            self.edges[e].color = "grey"
+
+    def event_prev_cycle(self, event):
+        if self.cycle_index is None or self.cycle_index == 0:
+            self.cycle_index = len(self.cycles) - 1
+        else:
+            self.cycle_index -= 1
+
+        self.reset_colors()
+        for edge in self.cycles[self.cycle_index]:
+            edge.color = "red"
+
+        self.repaint()
+
+    def event_next_cycle(self, event):
+        if self.cycle_index is None:
+            self.cycle_index = 0
+        elif self.cycle_index >= len(self.cycles) - 1:
+            self.cycle_index = 0
+        else:
+            self.cycle_index += 1
+
+        self.reset_colors()
+        for edge in self.cycles[self.cycle_index]:
+            edge.color = "red"
+
+        self.repaint()
+
 
     def event_start(self, event):
         x = Magic(self.nodes, self.edges)
         x.detect_cycles_in()
-        for i in x.cycles:
-            print [str(e) for e in i]
-
+        for n in self.nodes:
+            self.nodes[n].color = "white"
+        for cycle in x.cycles:
+            print [str(e) for e in cycle]
+            for edge in cycle:
+                edge.color = "red"
         self.repaint()
-        #c = [self.nodes[v] for v in self.nodes]
+
+        self.cycles = x.cycles
+        if len(self.cycles) > 0:
+            self.buttons['prev'].config(state=1)
+            self.buttons['next'].config(state=1)
+
 
     def render_canvas(self):
         self.canvas = Canvas(self.window, height=HEIGHT, width=WIDTH, relief=RAISED, borderwidth=1)
         self.canvas.grid(row=1, column=0, columnspan=2, rowspan=4,
-            padx=5, sticky=E+W+S+N)
+                         padx=5, sticky=E + W + S + N)
         self.canvas.bind('<Double-Button-1>', self.event_add_node)
         self.canvas.bind('<Button-1>', self.event_add_edge_start)
         self.canvas.bind('<B1-Motion>', self.event_add_edge_move)
@@ -89,7 +142,8 @@ class GAL:
 
     def event_add_edge_move(self, event):
         if self.active_edge is None:
-            self.active_edge = self.canvas.create_line(self.x, self.y, event.x, event.y, arrow="last", width=2)
+            self.active_edge = self.canvas.create_line(self.x, self.y, event.x, event.y, arrow="last", width=2,
+                                                       smooth=True)
         else:
             x1, y1, x2, y2 = self.canvas.coords(self.active_edge)
             self.canvas.coords(self.active_edge, x1, y1, event.x, event.y)
@@ -100,8 +154,15 @@ class GAL:
         x1, y1, x2, y2 = self.canvas.coords(self.active_edge)
         start = self._get_node_from_position(x1, y1)
         end = self._get_node_from_position(x2, y2)
-        if start is None or end is None or start == end:
+        if start is None or end is None:
             self.canvas.delete(self.active_edge)
+        elif start == end:
+            self.canvas.delete(self.active_edge)
+            edge = Edge(start, start, True)
+            points = edge.get_coords()
+            self.active_edge = self.canvas.create_line(points, width=2, smooth=True, arrow="last")
+            self.canvas.tag_lower(self.active_edge, self.nodes.keys()[0])
+            self.edges[self.active_edge] = edge
         else:
             x, y = self._calculate_edge_end_from_nodes(start, end)
             self.canvas.coords(self.active_edge, start.x, start.y, x, y)
@@ -144,7 +205,12 @@ class GAL:
         for edge_id in list_of_edge_ids:
             edge = self.edges[edge_id]
             x, y = self._calculate_edge_end_from_nodes(edge.start, edge.end)
-            self.canvas.coords(edge_id, edge.start.x, edge.start.y, x, y)
+            if edge.is_curve:
+                coords = edge.get_coords()
+                self.canvas.coords(edge_id, coords[0][0], coords[0][1], coords[1][0], coords[1][1], coords[2][0],
+                                   coords[2][1], coords[3][0], coords[3][1])
+            else:
+                self.canvas.coords(edge_id, edge.start.x, edge.start.y, x, y)
 
     def _repair_edge_starting_in_node(self, node):
         list_of_edge_ids = []
@@ -155,8 +221,13 @@ class GAL:
         for edge_id in list_of_edge_ids:
             edge = self.edges[edge_id]
             x, y = self._calculate_edge_end_from_nodes(edge.start, edge.end)
-            self.canvas.coords(edge_id, edge.start.x, edge.start.y, x, y)
-            #self.canvas.itemconfigure(edge_id, fill="black")
+            if edge.is_curve:
+                coords = edge.get_coords()
+                self.canvas.coords(edge_id, coords[0][0], coords[0][1], coords[1][0], coords[1][1], coords[2][0],
+                                   coords[2][1], coords[3][0], coords[3][1])
+            else:
+                self.canvas.coords(edge_id, edge.start.x, edge.start.y, x, y)
+                #self.canvas.itemconfigure(edge_id, fill="black")
 
     def _calculate_edge_end_from_nodes(self, start_node, end_node):
         diffx = end_node.x - start_node.x
