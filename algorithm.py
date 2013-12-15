@@ -83,7 +83,7 @@ class Magic:
                    if i.start == z.end:
                        longestCopy.append(longestCopy.pop(0))
 
-                print z,":::",[str(x) for x in longestCopy]
+               # print z,":::",[str(x) for x in longestCopy]
 
                 for e in longestCopy:
                     if e.end not in visit:
