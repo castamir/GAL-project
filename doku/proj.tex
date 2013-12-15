@@ -22,7 +22,7 @@
 \tableofcontents
 \newpage
 \section{Úvod}
-Tato práce se zaměřuje na hledání cyklů v orientovaném grafu. Součástí je grafické uživatelské rozhraní, které je určeno pro snadnější zadávání grafů a vizualizaci řešení. \\
+Tato práce se zaměřuje na hledání cyklů v orientovaném grafu. Součástí je grafické uživatelské rozhraní, které je určeno pro snadnější zadávání grafů a vizuální demonstraci řešení. \\
 	
 \section{Analýza a řešení zadání}
 K snadnému použití bylo zapotřebí sestavit grafické uživatelské rozhraní. Celá aplikace byla napsána v jazyce Python v2.7.6\cite{python} a grafické rozhraní pomocí grafické knihovny Tkinter\cite{tkinter}. Pro lepší týmovou spolupráci byl použit verzovací systém Git.\\ 
@@ -38,6 +38,14 @@ Ovládání je intuitivní pomocí myši a to následovně:
 \end{enumerate}
 Vlastní simulace se spouští pomocí tlačítka \textbf{Vyhledat cykly}, celá plocha se dá vymazat pomocí \textbf{Smazat graf}. Dále je možné aplikaci krokovat pomocí tlačítek \textbf{Předchozí cyklus} a \textbf{Následující cyklus}, dále je vložen ukázkový graf \textbf{Ukázka}.\\
 Hrany odpovídající cyklům jsou zvýrazněny pomocí červené barvy.
+Ukázka je na obrázku \ref{gui}
+\begin{figure}[h!]
+\begin{center}
+\scalebox{1}{\includegraphics{gui.png}}
+\caption{Grafické rozhraní}
+\label{gui}
+\end{center}
+\end{figure} 
 \section{Závěr}
 Tato práce byla zaměřena na detekci cyklů v orientovaném grafu. Bohužel z technických důvodů nebyl použit doporučený Johnsonovým algoritmus, nicméně byla implementována alternativa detekce cyklů pomocí silně souvislých komponent a prohledávání stavového prostoru.\\ Tato aplikace nepřináší žádné speciální možnosti pro pokročilou analýzu grafů a slouží jen pro základní demonstrační účely. V případě dalšího vývoje by bylo třeba značně zapracovat na vnitřní implementaci algoritmů a jejich optimalizaci, stejně jako na grafickém rozhraní. Vhodné by bylo přidání možnosti načítání a ukládání dat například pomocí formátu \textit{GraphML}.
 \newpage
