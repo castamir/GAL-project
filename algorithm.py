@@ -54,55 +54,7 @@ class Magic:
             s = en
         return newEdges
 
-    # def DetErrCycle(self, path, node):
-    #     for i in range(0, len(path) - 1):
-    #         if path[i] == node:
-    #             for j in range(i + 1, len(path) - 1):
-    #                 if path[j] == node:
-    #                     if path[i + 1] == path[j + 1]:
-    #                         return True
-    #
-    #     return False
 
-    # def detectPrePath(self, start, det, path): #detekce podle predchudcu
-    #     for node in start.Pre:
-    #         if node == det:
-    #             return [node]
-    #         if self.DetErrCycle(path, node):
-    #             return []
-    #         return [node] + self.detectPrePath(node, det, path + [node])
-    #     return []
-
-    # def cycle(self, start, path, edges, init):
-    #     for node in start.Adj:
-    #         node.Pre = []
-    #         node.Pre.append(start)
-    #         if node in path:
-    #             nodes = self.detectPrePath(node, node, path) #detekuju pozpatku
-    #             if nodes == []:
-    #                 continue
-    #             nodes = [node] + nodes
-    #             cycleEdges = self.edgesFromNodes(nodes[::-1], edges)
-    #             self.cycles.append(cycleEdges)
-    #         if node != init:
-    #             self.cycle(node, path + [node], edges, init)
-
-    # def findCycle(self, path, start, actNode, edges):
-    #     for e in edges:
-    #         if e == start:
-    #             path2 = []
-    #             for e2 in range(path.index(e), len(path) - 1):
-    #                 path2.append(e2)
-    #             self.cycles.append(path2)
-    #             continue
-    #
-    #         if actNode == None or e.start == actNode.end :
-    #             self.findCycle( path + [e], start, e, edges)
-    #
-    # def detectSubcycles(self, longestPath, edges):
-    #     self.cycles.append(longestPath)
-    #     for e in edges:
-    #         self.findCycle([e], e, None, edges)
 
 
     def detect_cycles_in(self):
@@ -113,39 +65,66 @@ class Magic:
             longestPath = self.find_path_containing_all_nodes_from_component(c)
             if longestPath == []:
                 continue
-    #         for i in longestPath:
-    #             print i.start,"->", i.end
-            visited = []
-            for edge in longestPath:
-                zkratky = []
+
+            zkratky = []
+            for edge in edges:
                 for e in edges:
-                    if e not in visited and e.start == edge.start and e.end != edge.end:
+                    if e.start == edge.start and e.end != edge.end and e not in zkratky:
                         zkratky.append(e)
-                longestCopy = longestPath[longestPath.index(edge):len(longestPath)]
+            print [str(e) for e in zkratky]
+            visit = []
+            #for e in longestPath:
 
-                for zkratka in zkratky:
-                    visited.append(zkratka)
-                    if zkratka != edge:
-                        # if len(longestCopy) == 0:
-                        #     continue
+            for z in zkratky:
+                longestCopy = longestPath[:]
 
-                        while len(longestCopy) > 0:
-                            act = longestCopy.pop(0)
-                            if act.start == zkratka.end:
+                print z,"long",[str(x) for x in longestCopy]
+                for i in longestCopy:
+                   if i.start == z.end:
+                       longestCopy.append(longestCopy.pop(0))
 
-                                longestCopy2 = longestCopy[:]
-                                path = [zkratka, act]
-                                while len(longestCopy) > 0:
-                                    act = longestCopy.pop(0)
-                                    path.append(act)
-                                    if zkratka.start == act.end:
-                                        self.cycles.append(path[:])
-                                #self.cycles.append(path)
+                print z,":::",[str(x) for x in longestCopy]
 
-                            #if zkratka.start == act.end:
-                    longestCopy = longestCopy2[:]
+                for e in longestCopy:
+                    if e.end not in visit:
+                        if z.end == e.start:
+                            path = []
+                            for i in range(longestCopy.index(e), len(longestCopy)):
+                                path.append(longestCopy[i])
+                                if longestCopy[i].end == z.start:
+                                    self.cycles.append([z] + path[:])
+                # else:
+                #     if z.end == e.start:
+                #         path = []
+                #         for i in range(0,longestPath.index(e)):
+                #             path.append(longestPath[longestPath.index(e)-i])
+                #             if longestPath[longestPath.index(e)-i].end == z.start:
+                #                 self.cycles.append([z] + path[:])
+            visit.append(e.start)
 
-            self.cycles.append(longestPath)
+
+            # while len(longestCopy) > 0:
+            #     pathNode = longestCopy.pop()
+            #     for zkratka in zkratky:
+            #
+            #         if zkratka.end not in checked:
+            #             if zkratka.end == pathNode.start:
+            #                 path = []
+            #                 for i in range(longestPath.index(pathNode), len(longestPath)):
+            #                     path.append(longestPath[i])
+            #                     if longestPath[i].end == zkratka.start:
+            #                         self.cycles.append([zkratka]+path[:])
+            #
+            #         else:
+            #             if zkratka.start == pathNode.end:
+            #                 path = []
+            #                 for i in range(0 ,longestPath.index(pathNode)):
+            #                     path.append(longestPath[longestPath.index(pathNode)-i])
+            #                     if longestPath[longestPath.index(pathNode)-i].end == zkratka.start :
+            #                         self.cycles.append( [zkratka] + path[:] )
+            #     checked.append(pathNode.start)
+
+
 
 # ##############################
 # for hrana in nejdelsi_cesta:
@@ -310,7 +289,7 @@ if __name__ == "__main__":
 
     V = {
         "A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0),
-         "D": Node(0, 0), "E": Node(0, 0), "F": Node(0, 0), "G": Node(0, 0), "H": Node(0, 0)
+        "D": Node(0, 0), "E": Node(0, 0), "F": Node(0, 0), "G": Node(0, 0), "H": Node(0, 0)
     }
     E = {
         #0: Edge(V["A"], V["B"]), 2: Edge(V["B"], V["D"]), 4: Edge(V["D"], V["C"]), 1: Edge(V["C"], V["A"]),
@@ -353,13 +332,14 @@ if __name__ == "__main__":
 
     x.detect_cycles_in()
 
+
+    for cycle in x.cycles:
+        print "-------------------"
+        print "cycle:"
+        print "-------------------"
+        for i in cycle:
+            print i.start, "->", i.end
     print "cycle", len(x.cycles), "comp", len(x.components)
-    # for cycle in x.cycles:
-    #     print "-------------------"
-    #     print "cycle:"
-    #     print "-------------------"
-    #     for i in cycle:
-    #         print i.start, "->", i.end
     #
     #
 
