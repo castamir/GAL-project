@@ -67,7 +67,7 @@ class Magic:
                 continue
 
             zkratky = []
-            for edge in edges:
+            for edge in longestPath:
                 for e in edges:
                     if e.start == edge.start and e.end != edge.end and e not in zkratky:
                         zkratky.append(e)
@@ -75,14 +75,12 @@ class Magic:
             visit = []
             #for e in longestPath:
 
+            longestCopy = longestPath[:]
             for z in zkratky:
-                longestCopy = longestPath[:]
 
+                while longestCopy[0].start != z.end:
+                    longestCopy.append(longestCopy.pop(0))
                 print z,"long",[str(x) for x in longestCopy]
-                for i in longestCopy:
-                   if i.start == z.end:
-                       longestCopy.append(longestCopy.pop(0))
-
                # print z,":::",[str(x) for x in longestCopy]
 
                 for e in longestCopy:
@@ -92,40 +90,18 @@ class Magic:
                             for i in range(longestCopy.index(e), len(longestCopy)):
                                 path.append(longestCopy[i])
                                 if longestCopy[i].end == z.start:
-                                    self.cycles.append([z] + path[:])
-                # else:
-                #     if z.end == e.start:
-                #         path = []
-                #         for i in range(0,longestPath.index(e)):
-                #             path.append(longestPath[longestPath.index(e)-i])
-                #             if longestPath[longestPath.index(e)-i].end == z.start:
-                #                 self.cycles.append([z] + path[:])
+                                    tmp = [z] + path[:]
+                                    num = len(tmp)
+                                    flag = False
+                                    while num > 0:
+                                        tmp.append(tmp.pop(0))
+                                        num = num - 1
+                                        if tmp in self.cycles:
+                                            flag = True
+                                    if  not flag:
+                                        self.cycles.append([z] + path[:])
+
             visit.append(e.start)
-
-
-            # while len(longestCopy) > 0:
-            #     pathNode = longestCopy.pop()
-            #     for zkratka in zkratky:
-            #
-            #         if zkratka.end not in checked:
-            #             if zkratka.end == pathNode.start:
-            #                 path = []
-            #                 for i in range(longestPath.index(pathNode), len(longestPath)):
-            #                     path.append(longestPath[i])
-            #                     if longestPath[i].end == zkratka.start:
-            #                         self.cycles.append([zkratka]+path[:])
-            #
-            #         else:
-            #             if zkratka.start == pathNode.end:
-            #                 path = []
-            #                 for i in range(0 ,longestPath.index(pathNode)):
-            #                     path.append(longestPath[longestPath.index(pathNode)-i])
-            #                     if longestPath[longestPath.index(pathNode)-i].end == zkratka.start :
-            #                         self.cycles.append( [zkratka] + path[:] )
-            #     checked.append(pathNode.start)
-
-
-
 # ##############################
 # for hrana in nejdelsi_cesta:
     # seznam_zkratek = []  # z hrana.start
@@ -137,8 +113,6 @@ class Magic:
     #                     # pridame cyklus (cestu) slouzenou ze zkratky (jedna hrana) a vsech hrany mezi H a "hrana_na_zbytku_cesty_od_zkratky_dal" vcetne
 # ##############################
 
-            #self.detectSubcycles(longestPath, edges)
-            # self.cycle(c[0], [c[0]], edges, c[0])
 
     def StructInit(self, V, E):
         for node in V:
@@ -307,6 +281,35 @@ if __name__ == "__main__":
         17: Edge(V["H"], V["E"]),
     }
 
+    # V = {
+    #     "A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0),
+    #     "D": Node(0, 0), "E": Node(0, 0), "Z": Node(0, 0),
+    # }
+    # E = {
+    #
+    #
+    #     11: Edge(V["A"], V["B"]),
+    #     12: Edge(V["B"], V["C"]),
+    #     13: Edge(V["C"], V["D"]),
+    #     14: Edge(V["D"], V["A"]),
+    #
+    #     15: Edge(V["B"], V["D"]),
+    #     16: Edge(V["D"], V["E"]),
+    #     17: Edge(V["E"], V["D"]),
+    #
+    #     18: Edge(V["A"], V["Z"]),
+    #     19: Edge(V["Z"], V["A"]),
+    #
+    #     # druhej priklad
+    #
+    #     # 6: Edge(V["A"], V["B"]),
+    #     # 7: Edge(V["B"], V["C"]),
+    #     # 5: Edge(V["C"], V["B"]),
+    #     # 4: Edge(V["B"], V["A"]),
+    #
+    #
+    # }
+
     x = Magic(V, E)
    # x.SSC()
     #x.detect_cycles_in()
@@ -335,13 +338,11 @@ if __name__ == "__main__":
 
     for cycle in x.cycles:
         print "-------------------"
-        print "cycle:"
+        print "cycle:", [str(i) for i in cycle]
         print "-------------------"
-        for i in cycle:
-            print i.start, "->", i.end
+
     print "cycle", len(x.cycles), "comp", len(x.components)
-    #
-    #
+
 
 
 
