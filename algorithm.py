@@ -54,73 +54,65 @@ class Magic:
             s = en
         return newEdges
 
+    def is_in_cycles(self, tmp):
+        num = len(tmp)
+        while num >= 0:
+            tmp.append(tmp.pop(0))
+            num -= 1
+            if tmp in self.cycles:
+                return True
+        return False
 
+    def walkthrow(self, find, start, tmp, out):
+        for p in start.Pre:
+            if p == find:
+                if tmp[:] + [p] not in out:
+                    out.append(tmp[:] + [p])
+            else:
+                if p not in tmp:
+                    self.walkthrow(find, p, tmp + [p], out)
 
 
     def detect_cycles_in(self):
-        self.SSC()  # step + odbarveni zbytecnych hran
+        self.SSC()
+        out = []
+        output = []
         for c in self.components:
             edges = self.get_edges_from_component(c)
-            #print [str(e) for e in edges]
-            longestPath = self.find_path_containing_all_nodes_from_component(c)
-            if longestPath == []:
-                continue
+            for v in c:
+                to_expand = [v]
+                expanded = []
+                while len(to_expand) > 0:
+                    node = to_expand.pop(0)
+                    for n in node.Adj:
+                        n.Pre.append(node)
+                        if n == v:
+                            self.walkthrow(v, n,[n], out)
+                            continue
+                        else:
+                            if n not in expanded and n != node:
+                                to_expand.append(n)
+                    expanded.append(node)
 
-            zkratky = []
-            for edge in longestPath:
-                for e in edges:
-                    if e.start == edge.start and e.end != edge.end and e not in zkratky:
-                        zkratky.append(e)
-            print [str(e) for e in zkratky]
-            visit = []
-            #for e in longestPath:
+                for o in out:
+                    if o not in output:
+                        output.append(o)
 
-            longestCopy = longestPath[:]
-            for z in zkratky:
+            for i in output:
+                newEdges = self.find_path_from_nodes(i[::-1], edges)
+                if not self.is_in_cycles(newEdges):
+                    self.cycles.append(newEdges[:])
 
-                count = 0
-                for i in longestPath:
-                    if i.start == z.end:
-                        count += 1
-                print z, count
-                while count > 0:
-                    longestCopy.append(longestCopy.pop(0))
-                    while longestCopy[0].start != z.end:
-                        longestCopy.append(longestCopy.pop(0))
-                    print z,"long",[str(x) for x in longestCopy]
-                   # print z,":::",[str(x) for x in longestCopy]
-
-                    for e in longestCopy:
-                       # if e.end not in visit:
-                        if z.end == e.start:
-                            path = []
-                            for i in range(longestCopy.index(e), len(longestCopy)):
-                                path.append(longestCopy[i])
-                                if longestCopy[i].end == z.start:
-                                    tmp = [z] + path[:]
-                                    num = len(tmp)
-                                    flag = False
-                                    while num >= 0:
-                                        tmp.append(tmp.pop(0))
-                                        num = num - 1
-                                        if tmp in self.cycles:
-                                            flag = True
-                                    if  not flag:
-                                        self.cycles.append([z] + path[:])
-                    count -= 1
-
-            visit.append(e.start)
-# ##############################
-# for hrana in nejdelsi_cesta:
-    # seznam_zkratek = []  # z hrana.start
-    # for zkratka in seznam_zkratek:
-    #     if zkratka != hrana:
-    #         for hrana_na_zbytku_cesty_od_zkratky_dal in nejdelsi_cesta:
-    #             if hrana_na_zbytku_cesty_od_zkratky_dal.start == zkratka.end:
-    #                 # pro vsechny vyskyty zkratka.start (tedy hranu H) ve zbytku nejdelsi cesty od "hrana_na_zbytku_cesty_od_zkratky_dal"
-    #                     # pridame cyklus (cestu) slouzenou ze zkratky (jedna hrana) a vsech hrany mezi H a "hrana_na_zbytku_cesty_od_zkratky_dal" vcetne
-# ##############################
-
+    def find_path_from_nodes(self, nodes, edges):
+        newEdges = []
+        current_node = nodes.pop(0)
+        for node in nodes:
+            for edge in edges:
+                if edge.start == current_node and edge.end == node:
+                    newEdges.append(edge)
+                    break
+            current_node = node
+        return newEdges
 
     def StructInit(self, V, E):
         for node in V:
@@ -211,8 +203,6 @@ class Magic:
 
     def find_path_containing_all_nodes_from_component(self, c):
         edges = self.get_edges_from_component(c)
-        #print "edges from component:"
-        #print [str(e) for e in edges]
         if len(edges) == 0:
             return []
 
@@ -222,30 +212,23 @@ class Magic:
         print "path:", [str(s) for s in path]
 
     def __find_path(self, start_node, curent_node, component, edges, visited_nodes=list(), curent_path=list()):
-        #print "starting node", str(curent_node)
         for edge in edges:
             if edge not in curent_path and edge.start == curent_node and edge.end in component:
-                #print "good edge", str(edge)
                 if edge.end in visited_nodes:
                     visited = []
                 else:
                     visited = [edge.end]
                 missing = self.__get_missing_elements_from_component(component, visited_nodes)
-                #print [str(m) for m in missing]
                 if (len(missing) == 1 and missing[0] == start_node or len(missing) == 0) and edge.end == start_node:
                     # nasel jsem posledni
-                    #print "ending node", str(curent_node), "because last was found"
                     return curent_path + [edge]
                 found = self.__find_path(start_node, edge.end, component, edges, visited_nodes + visited,
                                          curent_path + [edge])
                 if found is not None:
                     # tato hrana lezi na spravne ceste, ktera tady jeste nebyla znama cela
-                    #print "ending node", str(curent_node), "good path"
                     return found
                 else:
-                    #print "continue with", str(curent_node)
                     pass
-        #print "ending node", str(curent_node), "nothing found"
         return None
 
     def __get_missing_elements_from_component(self, c, visited_nodes):
@@ -290,13 +273,13 @@ if __name__ == "__main__":
     # }
 
     V = {
-        "A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0),
+        "A": Node(0, 0), #"B": Node(0, 0), "C": Node(0, 0),
         "D": Node(0, 0), "E": Node(0, 0), "Z": Node(0, 0),
     }
     E = {
 
 
-        11: Edge(V["A"], V["B"]),
+         11: Edge(V["A"], V["B"]),
         12: Edge(V["B"], V["C"]),
         13: Edge(V["C"], V["D"]),
         14: Edge(V["D"], V["A"]),
@@ -314,42 +297,11 @@ if __name__ == "__main__":
         # 7: Edge(V["B"], V["C"]),
         # 5: Edge(V["C"], V["B"]),
         # 4: Edge(V["B"], V["A"]),
-
-
     }
 
     x = Magic(V, E)
-   # x.SSC()
-    #x.detect_cycles_in()
-    #print len(x.cycles)
-    #for i in x.cycles:
-    #    for e in i:
-    #        print e.name
-    #print e.start, "->", e.end
-    #print "---------------"
-
-    # for c in x.components:
-    #     print "new component:"
-    #     print [str(n) for n in c]
-    #     path = x.find_path_containing_all_nodes_from_component(c)
-    #     #print "=================================="
-    #     if path is not None:
-    #         print "longest path:"
-    #         print [str(e) for e in path]
-    #
-    #         print "\n"
-    #     else:
-    #         print "problem"
-
     x.detect_cycles_in()
 
-
-    for cycle in x.cycles:
-        print "-------------------"
-        print "cycle:", [str(i) for i in cycle]
-        print "-------------------"
-
-    print "cycle", len(x.cycles), "comp", len(x.components)
 
 
 
