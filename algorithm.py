@@ -54,45 +54,112 @@ class Magic:
             s = en
         return newEdges
 
-    def DetErrCycle(self, path, node):
-        for i in range(0, len(path) - 1):
-            if path[i] == node:
-                for j in range(i + 1, len(path) - 1):
-                    if path[j] == node:
-                        if path[i + 1] == path[j + 1]:
-                            return True
+    # def DetErrCycle(self, path, node):
+    #     for i in range(0, len(path) - 1):
+    #         if path[i] == node:
+    #             for j in range(i + 1, len(path) - 1):
+    #                 if path[j] == node:
+    #                     if path[i + 1] == path[j + 1]:
+    #                         return True
+    #
+    #     return False
 
-        return False
+    # def detectPrePath(self, start, det, path): #detekce podle predchudcu
+    #     for node in start.Pre:
+    #         if node == det:
+    #             return [node]
+    #         if self.DetErrCycle(path, node):
+    #             return []
+    #         return [node] + self.detectPrePath(node, det, path + [node])
+    #     return []
 
-    def detectPrePath(self, start, det, path): #detekce podle predchudcu
-        for node in start.Pre:
-            if node == det:
-                return [node]
-            if self.DetErrCycle(path, node):
-                return []
-            return [node] + self.detectPrePath(node, det, path + [node])
-        return []
+    # def cycle(self, start, path, edges, init):
+    #     for node in start.Adj:
+    #         node.Pre = []
+    #         node.Pre.append(start)
+    #         if node in path:
+    #             nodes = self.detectPrePath(node, node, path) #detekuju pozpatku
+    #             if nodes == []:
+    #                 continue
+    #             nodes = [node] + nodes
+    #             cycleEdges = self.edgesFromNodes(nodes[::-1], edges)
+    #             self.cycles.append(cycleEdges)
+    #         if node != init:
+    #             self.cycle(node, path + [node], edges, init)
 
-    def cycle(self, start, path, edges, init):
-        for node in start.Adj:
-            node.Pre = []
-            node.Pre.append(start)
-            if node in path:
-                nodes = self.detectPrePath(node, node, path) #detekuju pozpatku
-                if nodes == []:
-                    continue
-                nodes = [node] + nodes
-                cycleEdges = self.edgesFromNodes(nodes[::-1], edges)
-                self.cycles.append(cycleEdges)
-            if node != init:
-                self.cycle(node, path + [node], edges, init)
+    # def findCycle(self, path, start, actNode, edges):
+    #     for e in edges:
+    #         if e == start:
+    #             path2 = []
+    #             for e2 in range(path.index(e), len(path) - 1):
+    #                 path2.append(e2)
+    #             self.cycles.append(path2)
+    #             continue
+    #
+    #         if actNode == None or e.start == actNode.end :
+    #             self.findCycle( path + [e], start, e, edges)
+    #
+    # def detectSubcycles(self, longestPath, edges):
+    #     self.cycles.append(longestPath)
+    #     for e in edges:
+    #         self.findCycle([e], e, None, edges)
 
 
     def detect_cycles_in(self):
         self.SSC()  # step + odbarveni zbytecnych hran
         for c in self.components:
             edges = self.get_edges_from_component(c)
-            self.cycle(c[0], [c[0]], edges, c[0])
+            #print [str(e) for e in edges]
+            longestPath = self.find_path_containing_all_nodes_from_component(c)
+            if longestPath == []:
+                continue
+    #         for i in longestPath:
+    #             print i.start,"->", i.end
+            visited = []
+            for edge in longestPath:
+                zkratky = []
+                for e in edges:
+                    if e not in visited and e.start == edge.start and e.end != edge.end:
+                        zkratky.append(e)
+                longestCopy = longestPath[longestPath.index(edge):len(longestPath)]
+
+                for zkratka in zkratky:
+                    visited.append(zkratka)
+                    if zkratka != edge:
+                        # if len(longestCopy) == 0:
+                        #     continue
+
+                        while len(longestCopy) > 0:
+                            act = longestCopy.pop(0)
+                            if act.start == zkratka.end:
+
+                                longestCopy2 = longestCopy[:]
+                                path = [zkratka, act]
+                                while len(longestCopy) > 0:
+                                    act = longestCopy.pop(0)
+                                    path.append(act)
+                                    if zkratka.start == act.end:
+                                        self.cycles.append(path[:])
+                                #self.cycles.append(path)
+
+                            #if zkratka.start == act.end:
+                    longestCopy = longestCopy2[:]
+
+            self.cycles.append(longestPath)
+
+# ##############################
+# for hrana in nejdelsi_cesta:
+    # seznam_zkratek = []  # z hrana.start
+    # for zkratka in seznam_zkratek:
+    #     if zkratka != hrana:
+    #         for hrana_na_zbytku_cesty_od_zkratky_dal in nejdelsi_cesta:
+    #             if hrana_na_zbytku_cesty_od_zkratky_dal.start == zkratka.end:
+    #                 # pro vsechny vyskyty zkratka.start (tedy hranu H) ve zbytku nejdelsi cesty od "hrana_na_zbytku_cesty_od_zkratky_dal"
+    #                     # pridame cyklus (cestu) slouzenou ze zkratky (jedna hrana) a vsech hrany mezi H a "hrana_na_zbytku_cesty_od_zkratky_dal" vcetne
+# ##############################
+
+            #self.detectSubcycles(longestPath, edges)
+            # self.cycle(c[0], [c[0]], edges, c[0])
 
     def StructInit(self, V, E):
         for node in V:
@@ -100,7 +167,7 @@ class Magic:
             node.Adj = []
             for edge in E:
                 if edge.start == node:
-                    if (edge.end) not in node.Adj:
+                    if edge.end not in node.Adj:
                         node.Adj.append(edge.end)
 
     def DFS_visit(self, node):
@@ -183,8 +250,8 @@ class Magic:
 
     def find_path_containing_all_nodes_from_component(self, c):
         edges = self.get_edges_from_component(c)
-        print "edges from component:"
-        print [str(e) for e in edges]
+        #print "edges from component:"
+        #print [str(e) for e in edges]
         if len(edges) == 0:
             return []
 
@@ -231,7 +298,6 @@ class Magic:
         for node in c:
             node.Pre = []
             node.Adj = []
-            #   node.Checked = []
         edges = []
         for edge in self.edges:
             if edge.start in c and edge.end in c:
@@ -263,7 +329,7 @@ if __name__ == "__main__":
     }
 
     x = Magic(V, E)
-    x.SSC()
+   # x.SSC()
     #x.detect_cycles_in()
     #print len(x.cycles)
     #for i in x.cycles:
@@ -272,19 +338,30 @@ if __name__ == "__main__":
     #print e.start, "->", e.end
     #print "---------------"
 
-    for c in x.components:
-        print "new component:"
-        print [str(n) for n in c]
-        path = x.find_path_containing_all_nodes_from_component(c)
-        #print "=================================="
-        if path is not None:
-            print "longest path:"
-            print [str(e) for e in path]
+    # for c in x.components:
+    #     print "new component:"
+    #     print [str(n) for n in c]
+    #     path = x.find_path_containing_all_nodes_from_component(c)
+    #     #print "=================================="
+    #     if path is not None:
+    #         print "longest path:"
+    #         print [str(e) for e in path]
+    #
+    #         print "\n"
+    #     else:
+    #         print "problem"
 
-            print "\n"
-        else:
-            print "problem"
+    x.detect_cycles_in()
 
+    print "cycle", len(x.cycles), "comp", len(x.components)
+    # for cycle in x.cycles:
+    #     print "-------------------"
+    #     print "cycle:"
+    #     print "-------------------"
+    #     for i in cycle:
+    #         print i.start, "->", i.end
+    #
+    #
 
 
 
