@@ -1,17 +1,21 @@
+# coding=utf-8
 from Tkinter import *
 import math
 from Components import *
 from algorithm import *
+from ttk import Frame, Button, Label, Style
 
 HEIGHT = 450
 WIDTH = 600
-
 
 class GAL:
     def __init__(self):
         self.locked = False
         self.window = Tk()
-        self.window.title("kuk")
+        self.window.title("Detekce cyklů v grafu")
+        self.window.geometry("700x500+50+50")
+        self.window.resizable(0,0)
+
         self.canvas = None
         self.buttons = {}
         self.nodes = {}
@@ -35,9 +39,17 @@ class GAL:
     def render_buttons(self):
         self.buttons['start'] = b = Button(self.window, text="Start", compound=LEFT)
         b.bind('<Button-1>', self.event_start)
+        b.grid(row=5, column=0, padx=5)
         b.pack(side=RIGHT, padx=5, pady=5)
         self.buttons['reset'] = b = Button(self.window, text="Reset", compound=LEFT)
+        b.bind('<Button-1>', self.event_reset)
+        b.grid(row=5, column=1, padx=5)
         b.pack(side=RIGHT, padx=5, pady=5)
+
+    def event_reset(self, event):
+        self.nodes = {}
+        self.edges = {}
+        self.canvas.delete("all")
 
     def event_start(self, event):
         x = Magic(self.nodes, self.edges)
@@ -50,13 +62,15 @@ class GAL:
 
     def render_canvas(self):
         self.canvas = Canvas(self.window, height=HEIGHT, width=WIDTH, relief=RAISED, borderwidth=1)
+        self.canvas.grid(row=1, column=0, columnspan=2, rowspan=4,
+            padx=5, sticky=E+W+S+N)
         self.canvas.bind('<Double-Button-1>', self.event_add_node)
         self.canvas.bind('<Button-1>', self.event_add_edge_start)
         self.canvas.bind('<B1-Motion>', self.event_add_edge_move)
         self.canvas.bind('<ButtonRelease-1>', self.event_add_edge_end)
         self.canvas.bind('<Button-3>', self.event_move_node_start)
         self.canvas.bind('<B3-Motion>', self.event_move_node)
-        self.canvas.pack(fill='both', expand='yes')
+        self.canvas.pack(fill=BOTH)
 
     def run(self):
         self.window.mainloop()
