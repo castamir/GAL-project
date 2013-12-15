@@ -2,14 +2,6 @@ from Components import *
 import copy
 
 
-def shiftInPlace(l, n):
-    n = n % len(l)
-    head = l[:n]
-    l[:n] = []
-    l.extend(head)
-    return l
-
-
 class Magic:
     def __init__(self, nodes, edges):
         if not isinstance(nodes, dict) or not isinstance(nodes, dict):
@@ -62,128 +54,88 @@ class Magic:
             s = en
         return newEdges
 
-    # def DetErrCycle(self, path, node):
-    #     for i in range(0, len(path) - 1):
-    #         if path[i] == node:
-    #             for j in range(i + 1, len(path) - 1):
-    #                 if path[j] == node:
-    #                     if path[i + 1] == path[j + 1]:
-    #                         return True
-    #
-    #     return False
 
-    # def detectPrePath(self, start, det, path): #detekce podle predchudcu
-    #     for node in start.Pre:
-    #         if node == det:
-    #             return [node]
-    #         if self.DetErrCycle(path, node):
-    #             return []
-    #         return [node] + self.detectPrePath(node, det, path + [node])
-    #     return []
-
-    # def cycle(self, start, path, edges, init):
-    #     for node in start.Adj:
-    #         node.Pre = []
-    #         node.Pre.append(start)
-    #         if node in path:
-    #             nodes = self.detectPrePath(node, node, path) #detekuju pozpatku
-    #             if nodes == []:
-    #                 continue
-    #             nodes = [node] + nodes
-    #             cycleEdges = self.edgesFromNodes(nodes[::-1], edges)
-    #             self.cycles.append(cycleEdges)
-    #         if node != init:
-    #             self.cycle(node, path + [node], edges, init)
-
-    # def findCycle(self, path, start, actNode, edges):
-    #     for e in edges:
-    #         if e == start:
-    #             path2 = []
-    #             for e2 in range(path.index(e), len(path) - 1):
-    #                 path2.append(e2)
-    #             self.cycles.append(path2)
-    #             continue
-    #
-    #         if actNode == None or e.start == actNode.end :
-    #             self.findCycle( path + [e], start, e, edges)
-    #
-    # def detectSubcycles(self, longestPath, edges):
-    #     self.cycles.append(longestPath)
-    #     for e in edges:
-    #         self.findCycle([e], e, None, edges)
 
 
     def detect_cycles_in(self):
         self.SSC()  # step + odbarveni zbytecnych hran
         for c in self.components:
             edges = self.get_edges_from_component(c)
-            visited_nodes = []
+            #print [str(e) for e in edges]
             longestPath = self.find_path_containing_all_nodes_from_component(c)
             if longestPath == []:
                 continue
-            shiftInPlace(longestPath,2)
-            print [str(s) for s in longestPath]
-            self.cycles.append(longestPath)
-            from_start_path = []
-            remaining_path = copy.copy(longestPath)
-            start = longestPath[0].start
-            for edge in longestPath:
-                remaining_path.pop(0)
-                visited_nodes.append(edge.start)
-                seznam_zkratek = []
+
+            zkratky = []
+            for edge in edges:
                 for e in edges:
-                    if e not in from_start_path and e.start == edge.start and e.end != edge.end:
-                        seznam_zkratek.append(e)
-                print "zkratky", str(edge), [str(s) for s in seznam_zkratek]
-                for zkratka in seznam_zkratek:
-                    print "zkratka", str(zkratka)
-                    #if zkratka != edge:
-                    if True:
-                        cesta_od_zkratky_do_konce = copy.copy(remaining_path)
-                        vnoreny_cyklus = []
+                    if e.start == edge.start and e.end != edge.end and e not in zkratky:
+                        zkratky.append(e)
+            print [str(e) for e in zkratky]
+            visit = []
+            #for e in longestPath:
+
+            for z in zkratky:
+                longestCopy = longestPath[:]
+
+                print z,"long",[str(x) for x in longestCopy]
+                for i in longestCopy:
+                   if i.start == z.end:
+                       longestCopy.append(longestCopy.pop(0))
+
+               # print z,":::",[str(x) for x in longestCopy]
+
+                for e in longestCopy:
+                    if e.end not in visit:
+                        if z.end == e.start:
+                            path = []
+                            for i in range(longestCopy.index(e), len(longestCopy)):
+                                path.append(longestCopy[i])
+                                if longestCopy[i].end == z.start:
+                                    self.cycles.append([z] + path[:])
+                # else:
+                #     if z.end == e.start:
+                #         path = []
+                #         for i in range(0,longestPath.index(e)):
+                #             path.append(longestPath[longestPath.index(e)-i])
+                #             if longestPath[longestPath.index(e)-i].end == z.start:
+                #                 self.cycles.append([z] + path[:])
+            visit.append(e.start)
 
 
-                        for g_hrana in remaining_path:
-                            vnoreny_cyklus.append(g_hrana)
-                            print [str(s) for s in edges]
-                            print [str(s) for s in longestPath]
-                            print [str(s) for s in from_start_path], [str(s) for s in vnoreny_cyklus], [str(s) for s in cesta_od_zkratky_do_konce]
-                            print [str(zkratka)], [str(g_hrana)]
-                            if g_hrana.start == zkratka.end:
-                                print "nasel jsem spojku, pro spojku ted najdu vsechny podcykly s E", str(g_hrana)
-                                vyhovujici = []
-                                for e_hrana in cesta_od_zkratky_do_konce:
-                                    vyhovujici.append(e_hrana)
-                                    print "vyhovujici-pole", [str(s) for s in vyhovujici]
-                                    #if e_hrana.end == zkratka.start:
-                                    #    print "freaky", [str(s) for s in from_start_path + [zkratka] + vyhovujici[:1]]
-                                    #    self.cycles.append(from_start_path[:] + [zkratka] + vyhovujici[:1])
-                                    if e_hrana.end == start:
-                                        print "do konce", [str(s) for s in from_start_path[:] + [zkratka] + vyhovujici[:]]
-                                        self.cycles.append(from_start_path[:] + [zkratka] + vyhovujici[:])
-                                    if e_hrana.end == g_hrana.start:
-                                        print "vnitrni", [str(s) for s in vyhovujici[:]]
-                                        self.cycles.append(vyhovujici[:])
-                                #print "zbytek", [str(s) for s in cesta_od_zkratky_do_konce[:]]
-                                #self.cycles.append(cesta_od_zkratky_do_konce[:])
-                            cesta_od_zkratky_do_konce.pop(0)
-                            print ""
-                from_start_path.append(edge)
+            # while len(longestCopy) > 0:
+            #     pathNode = longestCopy.pop()
+            #     for zkratka in zkratky:
+            #
+            #         if zkratka.end not in checked:
+            #             if zkratka.end == pathNode.start:
+            #                 path = []
+            #                 for i in range(longestPath.index(pathNode), len(longestPath)):
+            #                     path.append(longestPath[i])
+            #                     if longestPath[i].end == zkratka.start:
+            #                         self.cycles.append([zkratka]+path[:])
+            #
+            #         else:
+            #             if zkratka.start == pathNode.end:
+            #                 path = []
+            #                 for i in range(0 ,longestPath.index(pathNode)):
+            #                     path.append(longestPath[longestPath.index(pathNode)-i])
+            #                     if longestPath[longestPath.index(pathNode)-i].end == zkratka.start :
+            #                         self.cycles.append( [zkratka] + path[:] )
+            #     checked.append(pathNode.start)
 
 
 
-            # ##############################
-            # for hrana in nejdelsi_cesta:
-            # seznam_zkratek = []  # z hrana.start
-            # for zkratka in seznam_zkratek:
-            #     if zkratka != hrana:
-            #         for hrana_na_zbytku_cesty_od_zkratky_dal in nejdelsi_cesta:
-            #             if hrana_na_zbytku_cesty_od_zkratky_dal.start == zkratka.end:
-            #                 # pro vsechny vyskyty zkratka.start (tedy hranu E) ve zbytku nejdelsi cesty od
-            # "hrana_na_zbytku_cesty_od_zkratky_dal"
-            #                     # pridame cyklus (cestu) slouzenou ze zkratky (jedna hrana) a vsech hrany mezi H a
-            # "hrana_na_zbytku_cesty_od_zkratky_dal" vcetne
-            # ##############################
+# ##############################
+# for hrana in nejdelsi_cesta:
+    # seznam_zkratek = []  # z hrana.start
+    # for zkratka in seznam_zkratek:
+    #     if zkratka != hrana:
+    #         for hrana_na_zbytku_cesty_od_zkratky_dal in nejdelsi_cesta:
+    #             if hrana_na_zbytku_cesty_od_zkratky_dal.start == zkratka.end:
+    #                 # pro vsechny vyskyty zkratka.start (tedy hranu H) ve zbytku nejdelsi cesty od "hrana_na_zbytku_cesty_od_zkratky_dal"
+    #                     # pridame cyklus (cestu) slouzenou ze zkratky (jedna hrana) a vsech hrany mezi H a "hrana_na_zbytku_cesty_od_zkratky_dal" vcetne
+# ##############################
 
             #self.detectSubcycles(longestPath, edges)
             # self.cycle(c[0], [c[0]], edges, c[0])
@@ -311,7 +263,7 @@ class Magic:
                 else:
                     #print "continue with", str(curent_node)
                     pass
-            #print "ending node", str(curent_node), "nothing found"
+        #print "ending node", str(curent_node), "nothing found"
         return None
 
     def __get_missing_elements_from_component(self, c, visited_nodes):
@@ -337,35 +289,26 @@ if __name__ == "__main__":
 
     V = {
         "A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0),
-        #"D": Node(0, 0), "E": Node(0, 0), "Z": Node(0, 0),
+        "D": Node(0, 0), "E": Node(0, 0), "F": Node(0, 0), "G": Node(0, 0), "H": Node(0, 0)
     }
     E = {
-
-
-        #11: Edge(V["A"], V["B"]),
-        #12: Edge(V["B"], V["C"]),
-        #13: Edge(V["C"], V["D"]),
-        #14: Edge(V["D"], V["A"]),
-        #
-        #15: Edge(V["B"], V["D"]),
-        #16: Edge(V["D"], V["E"]),
-        #17: Edge(V["E"], V["D"]),
-        #
-        #18: Edge(V["A"], V["Z"]),
-        #19: Edge(V["Z"], V["A"]),
-
-        # druhej priklad
-
+        #0: Edge(V["A"], V["B"]), 2: Edge(V["B"], V["D"]), 4: Edge(V["D"], V["C"]), 1: Edge(V["C"], V["A"]),
         6: Edge(V["A"], V["B"]),
         7: Edge(V["B"], V["C"]),
-        5: Edge(V["C"], V["B"]),
-        4: Edge(V["B"], V["A"]),
+        9: Edge(V["C"], V["B"]),
+        10: Edge(V["B"], V["A"]),
 
-
+        11: Edge(V["D"], V["E"]),
+        12: Edge(V["E"], V["F"]),
+        13: Edge(V["F"], V["G"]),
+        14: Edge(V["G"], V["D"]),
+        15: Edge(V["E"], V["G"]),
+        16: Edge(V["E"], V["H"]),
+        17: Edge(V["H"], V["E"]),
     }
 
     x = Magic(V, E)
-    # x.SSC()
+   # x.SSC()
     #x.detect_cycles_in()
     #print len(x.cycles)
     #for i in x.cycles:
@@ -389,15 +332,16 @@ if __name__ == "__main__":
 
     x.detect_cycles_in()
 
-    print "cycle", len(x.cycles), "comp", len(x.components)
+
     for cycle in x.cycles:
         print "-------------------"
         print "cycle:"
         print "-------------------"
-        print [str(i) for i in cycle]
-        #print [str(i.start) for i in cycle] + [str(cycle[-1].end)]
-        #
-        #
+        for i in cycle:
+            print i.start, "->", i.end
+    print "cycle", len(x.cycles), "comp", len(x.components)
+    #
+    #
 
 
 
