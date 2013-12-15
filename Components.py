@@ -3,7 +3,7 @@ DEFAULT_COLOR = "blue"
 
 
 class Edge:
-    def __init__(self, start, end):
+    def __init__(self, start, end, is_curve=False):
         if not isinstance(start, Node):
             pass
         if not isinstance(end, Node):
@@ -12,9 +12,19 @@ class Edge:
         self.start = start
         self.end = end
         self.color = DEFAULT_COLOR
+        self.is_curve = is_curve
 
     def __str__(self):
         return "%s -> %s" % (self.start.name, self.end.name)
+
+    def get_coords(self):
+        return [
+            (self.start.x, self.start.y),
+            (self.start.x, self.start.y - 75),
+            (self.start.x + 75, self.start.y),
+            (self.start.x + 25, self.start.y),
+        ]
+
 
 class Node:
     def __init__(self, x, y):
