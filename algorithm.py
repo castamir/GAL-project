@@ -125,11 +125,12 @@ class Magic:
             self.__get_edges_from_component(i)
 
             for j in i:
+                self.__get_edges_from_component(i)
                 for k in i:
                     self.blocked[i.index(k)] = False
                     self.B[i.index(k)] = []
                 self.nFindCycles(j,j,i) # zde to mozna bude potreba volat pro kazdy uzel
-
+                i.pop(0)
 
     ################################################## revision end ####################################################
     def detect_cycles_in(self):
