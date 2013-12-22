@@ -16,11 +16,10 @@ class Magic:
         self.__TransponseEdges = []
         self.__TransponseNodes = []
 
-    ################################################## revision ########################################################
-        self.blocked = {}
-        self.B = {}
-        self.stack = []
-    ################################################## revision end ####################################################
+        self.__blocked = {}
+        self.__B = {}
+        self.__stack = []
+
         for v in nodes:
             node = nodes[v]
             node.name = v
@@ -56,80 +55,57 @@ class Magic:
                 return True
         return False
 
-    def __walkthrow(self, find, start, tmp, out):
-        for p in start.Pre:
-            if p == find:
-                if tmp[:] + [p] not in out:
-                    out.append(tmp[:] + [p])
-            else:
-                if p not in tmp:
-                    self.__walkthrow(find, p, tmp + [p], out)
-    #################################################### revision ######################################################
-    def unblock(self, node, comp):
-        self.blocked[comp.index(node)] = False
-        for w in self.B[comp.index(node)]:
-            self.B[comp.index(node)].remove(w)
-            if(self.blocked[comp.index(w)]):
-                self.unblock(w, comp)
+    def __unblock(self, node, comp):
+        self.__blocked[comp.index(node)] = False
+        for w in self.__B[comp.index(node)]:
+            self.__B[comp.index(node)].remove(w)
+            if(self.__blocked[comp.index(w)]):
+                self.__unblock(w, comp)
 
-    def nFindCycles(self, v, s, comp):
+    def _n_find_cycles(self, v, s, comp):
         f = False
-        self.stack.append(v)
-        self.blocked[comp.index(v)] = True
+        self.__stack.append(v)
+        self.__blocked[comp.index(v)] = True
 
         for i in v.Adj:
             if i == s:
                 cycle = []
-                for j in self.stack:
+                for j in self.__stack:
                     cycle.append(j)
                 self.cycles.append(cycle[:] + [i])
                 f = True
-            elif not self.blocked[comp.index(i)]:
-                if self.nFindCycles(i,s,comp):
+            elif not self.__blocked[comp.index(i)]:
+                if self._n_find_cycles(i,s,comp):
                     f = True
         if f:
-            self.unblock(v, comp)
+            self.__unblock(v, comp)
         else:
             for i in v.Adj:
-                if v not in self.B[comp.index(i)]:
-                    self.B[comp.index(i)].append(v)
-        self.stack.remove(v)
+                if v not in self.__B[comp.index(i)]:
+                    self.__B[comp.index(i)].append(v)
+        self.__stack.remove(v)
         return f
-
-    # def getElementaryCycles(self, comp, f):
-    #     ind = 0
-    #     while ind < len(comp):
-    #         edges = self.__get_edges_from_component(comp)
-    #         if edges != [] and comp != []:
-    #             s = comp[ind]
-    #             for i in s.Adj:
-    #                 self.blocked[comp.index(i)] = False
-    #                 self.B[comp.index(i)] = []
-    #             self.nFindCycles(s, s, comp, False)
-    #             ind += 1
-    #         else:
-    #             break
 
     def detect_cycles(self):
         self.SSC()
         for i in self._components:
 
-            self.blocked = {}
-            self.B = {}
-            self.stack = []
+            self.__blocked = {}
+            self.__B = {}
+            self.__stack = []
 
             for j in i:
-                self.blocked[i.index(j)] = False
-                self.B[i.index(j)] = []
+                self.__blocked[i.index(j)] = False
+                self.__B[i.index(j)] = []
 
             self.__get_edges_from_component(i)
 
             for j in i:
                 self.__get_edges_from_component(i)
                 for k in i:
-                    self.blocked[i.index(k)] = False
-                    self.B[i.index(k)] = []
-                self.nFindCycles(j,j,i) # zde to mozna bude potreba volat pro kazdy uzel
+                    self.__blocked[i.index(k)] = False
+                    self.__B[i.index(k)] = []
+                self._n_find_cycles(j,j,i) # zde to mozna bude potreba volat pro kazdy uzel
                 i.pop(0)
 
         tmp = []
@@ -137,38 +113,6 @@ class Magic:
             tmp.append(self.find_path_from_nodes(i,self.__edges))
         self.cycles = []
         self.cycles = tmp
-
-
-    ################################################## revision end ####################################################
-    def detect_cycles_in(self):
-        self.SSC()
-        out = []
-        output = []
-        for c in self._components:
-            edges = self.__get_edges_from_component(c)
-            for v in c:
-                to_expand = [v]
-                expanded = []
-                while len(to_expand) > 0:
-                    node = to_expand.pop(0)
-                    for n in node.Adj:
-                        n.Pre.append(node)
-                        if n == v:
-                            self.__walkthrow(v, n,[n], out)
-                            continue
-                        else:
-                            if n not in expanded and n != node:
-                                to_expand.append(n)
-                    expanded.append(node)
-
-                for o in out:
-                    if o not in output:
-                        output.append(o)
-
-            for i in output:
-                newEdges = self.find_path_from_nodes(i[::-1], edges)
-                if not self.__is_in_cycles(newEdges):
-                    self.cycles.append(newEdges[:])
 
     def find_path_from_nodes(self, nodes, edges):
         newEdges = []
@@ -336,15 +280,3 @@ if __name__ == "__main__":
 
     x = Magic(V, E)
     x.detect_cycles()
-    for i in x.cycles:
-        print [str(a) for a in i]
-
-  #  print "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  #  x.cycles = []
-  #  x.detect_cycles_in()
-  #  for i in x.cycles:
-  #      print [str(a) for a in i]
-
-
-
-
