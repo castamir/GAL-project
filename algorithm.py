@@ -16,6 +16,11 @@ class Magic:
         self.__TransponseEdges = []
         self.__TransponseNodes = []
 
+    ################################################## revision ########################################################
+        self.blocked = {}
+        self.B = {}
+        self.stack = []
+    ################################################## revision end ####################################################
         for v in nodes:
             node = nodes[v]
             node.name = v
@@ -59,8 +64,61 @@ class Magic:
             else:
                 if p not in tmp:
                     self.__walkthrow(find, p, tmp + [p], out)
+    #################################################### revision ######################################################
+    def unblock(self, node, comp):
+        self.blocked[comp.index(node)] = False
+        for w in self.B[comp.index(node)]:
+            if(self.blocked[comp.index(w)]):
+                self.unblock(w, comp)
 
+    def nFindCycles(self, v, s, comp):
+        f = False
+        self.stack.append(v)
+        self.blocked[comp.index(v)] = True
 
+        for i in v.Adj:
+            if i == s:
+                cycle = []
+                for j in self.stack:
+                    cycle.append(j)
+                self.cycles.append(cycle[:])
+                f = True
+            elif not self.blocked[comp.index(i)]:
+                if self.nFindCycles(i,s,comp):
+                    f = True
+
+        if f:
+            self.unblock(v, comp)
+        else:
+            for i in v.Adj:
+                if v not in self.B[comp.index(i)]:
+                    self.B[comp.index(i)].append(v)
+        self.stack.remove(v)
+        return f
+
+    def getElementaryCycles(self, comp):
+        self.blocked = {}
+        self.B = {}
+        ind = 0
+        while True:
+            edges = self.__get_edges_from_component(comp)
+            if edges != []:
+                s = comp[ind]
+                for i in s.Adj:
+                    self.blocked[comp.index(i)] = False
+                    self.B[comp.index(i)] = []
+                self.nFindCycles(s, s, comp)
+                ind += 1
+            else:
+                break
+
+    def detect_cycles(self):
+        self.SSC()
+        for i in self._components:
+            self.__get_edges_from_component(i)
+            self.nFindCycles(i[0],i[0],i) # zde to mozna bude potreba volat pro kazdy uzel
+
+    ################################################## revision end ####################################################
     def detect_cycles_in(self):
         self.SSC()
         out = []
