@@ -45,16 +45,6 @@ class Magic:
         self.steps.append({})
         self._current_step = self.steps[-1]
 
-
-    def __is_in_cycles(self, tmp):
-        num = len(tmp)
-        while num > 0:
-            tmp.append(tmp.pop(0))
-            num -= 1
-            if tmp in self.cycles:
-                return True
-        return False
-
     def __unblock(self, node, comp):
         self.__blocked[comp.index(node)] = False
         for w in self.__B[comp.index(node)]:
@@ -62,7 +52,7 @@ class Magic:
             if(self.__blocked[comp.index(w)]):
                 self.__unblock(w, comp)
 
-    def _n_find_cycles(self, v, s, comp):
+    def __find_cycles(self, v, s, comp):
         f = False
         self.__stack.append(v)
         self.__blocked[comp.index(v)] = True
@@ -75,7 +65,7 @@ class Magic:
                 self.cycles.append(cycle[:] + [i])
                 f = True
             elif not self.__blocked[comp.index(i)]:
-                if self._n_find_cycles(i,s,comp):
+                if self.__find_cycles(i,s,comp):
                     f = True
         if f:
             self.__unblock(v, comp)
@@ -105,7 +95,7 @@ class Magic:
                 for k in i:
                     self.__blocked[i.index(k)] = False
                     self.__B[i.index(k)] = []
-                self._n_find_cycles(j,j,i) # zde to mozna bude potreba volat pro kazdy uzel
+                self.__find_cycles(j,j,i) # zde to mozna bude potreba volat pro kazdy uzel
                 i.pop(0)
 
         tmp = []
@@ -125,7 +115,7 @@ class Magic:
             current_node = node
         return newEdges
 
-    def _StructInit(self, V, E):
+    def __struct_init(self, V, E):
         for node in V:
             node.color = "white"
             node.Adj = []
@@ -151,7 +141,7 @@ class Magic:
             if node.color == "white":
                 self.__DFS_visit(node)
 
-    def __TransponseGraph(self):
+    def __transponse_graph(self):
         for edge in self.__edges:
             self.__TransponseEdges.append(Edge(edge.end, edge.start))
         Nodes = {}
@@ -163,7 +153,7 @@ class Magic:
         for value in Index:
             self.__TransponseNodes.append(Nodes[value])
 
-    def __FindComponent(self):
+    def __find_component(self):
         self._components = []
 
         Nodes = {}
@@ -195,13 +185,13 @@ class Magic:
 
 
     def SSC(self):
-        self._StructInit(self.__nodes, self.__edges)
+        self.__struct_init(self.__nodes, self.__edges)
         self.DFS(self.__nodes, self.__edges)
-        self.__TransponseGraph()
-        self._StructInit(self.__TransponseNodes, self.__TransponseEdges)
+        self.__transponse_graph()
+        self.__struct_init(self.__TransponseNodes, self.__TransponseEdges)
         self.DFS(self.__TransponseNodes, self.__TransponseEdges)
 
-        self.__FindComponent()
+        self.__find_component()
         # nalezeni komponent
         self.add_color_to_components()
         self.next_step()
