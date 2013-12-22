@@ -132,6 +132,13 @@ class Magic:
                 self.nFindCycles(j,j,i) # zde to mozna bude potreba volat pro kazdy uzel
                 i.pop(0)
 
+        tmp = []
+        for i in self.cycles:
+            tmp.append(self.find_path_from_nodes(i,self.__edges))
+        self.cycles = []
+        self.cycles = tmp
+
+
     ################################################## revision end ####################################################
     def detect_cycles_in(self):
         self.SSC()
@@ -242,7 +249,7 @@ class Magic:
                         break
             self._components.append(current_component)
 
-    # todo
+
     def SSC(self):
         self._StructInit(self.__nodes, self.__edges)
         self.DFS(self.__nodes, self.__edges)
