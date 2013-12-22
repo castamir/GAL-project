@@ -115,6 +115,12 @@ class Magic:
     def detect_cycles(self):
         self.SSC()
         for i in self._components:
+            self.B = {}
+            self.blocked = {}
+            for j in i:
+                self.blocked[i.index(j)] = False
+                self.B[i.index(j)] = []
+
             self.__get_edges_from_component(i)
             self.nFindCycles(i[0],i[0],i) # zde to mozna bude potreba volat pro kazdy uzel
 
@@ -314,7 +320,7 @@ if __name__ == "__main__":
     }
 
     x = Magic(V, E)
-    x.detect_cycles_in()
+    x.detect_cycles()
 
 
 
