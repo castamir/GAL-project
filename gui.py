@@ -8,7 +8,7 @@ import tkMessageBox as box
 from pygraphml.GraphMLParser import *
 from pygraphml.Graph import *
 
-import math
+import math, os
 from algorithm import *
 
 HEIGHT = 450
@@ -60,12 +60,12 @@ class Example(Frame):
         b.bind('<Button-1>', self.event_start)
         b.grid(row=1, column=3)
 
-        self.buttons['next'] = b = Button(self, text=">>", width=15)
-        b.bind('<Button-1>', self.event_next_cycle)
+        self.buttons['next'] = b = Button(self, text=">>", width=15, state=DISABLED)
+        b.bind('<Button-1>', self.event_next_step)
         b.grid(row=2, column=3, pady=4)
 
-        self.buttons['prev'] = b = Button(self, text="<<", width=15)
-        b.bind('<Button-1>', self.event_prev_cycle)
+        self.buttons['prev'] = b = Button(self, text="<<", width=15, state=DISABLED)
+        b.bind('<Button-1>', self.event_prev_step)
         b.grid(row=3, column=3, pady=4)
 
         self.buttons['reset'] = b = Button(self, text="Reset", width=15)
@@ -136,6 +136,7 @@ class Example(Frame):
                 end = nodeMap[gedge.node2.id]
                 isCurve = start == end
                 self.__add_edge(start, end, isCurve)
+            self.label.configure(text=os.path.basename(filename))
         except KeyError:
             self.reset()
 
@@ -188,11 +189,13 @@ class Example(Frame):
     def event_reset(self, event):
         self.reset()
 
-    def event_prev_cycle(self, event):
-        self.algorithm_step_move(-1)
+    def event_prev_step(self, event):
+        if str(self.buttons['prev'].cget("state")) != str(DISABLED):
+            self.algorithm_step_move(-1)
 
-    def event_next_cycle(self, event):
-        self.algorithm_step_move(1)
+    def event_next_step(self, event):
+        if str(self.buttons['next'].cget("state")) != str(DISABLED):
+            self.algorithm_step_move(1)
 
     def event_start(self, event):
         x = Magic(self.nodes, self.edges)
@@ -356,13 +359,14 @@ class Example(Frame):
         return edge
 
     def algorithm_step_move(self, move):
-        self.step_index = (self.step_index + move) % len(self.steps)
-        self.reset_colors()
-        for i in range(self.step_index + 1):
-            colors = self.steps[i]
-            for id in colors:
-                if id in self.nodes.keys():
-                    self.nodes[id].color = colors[id]
-                elif id in self.edges.keys():
-                    self.edges[id].color = colors[id]
-        self.repaint()
+        if (self.step_index + move) < len(self.steps) and self.step_index + move >= 0:
+            self.step_index += move
+            self.reset_colors()
+            for i in range(self.step_index + 1):
+                colors = self.steps[i]
+                for id in colors:
+                    if id in self.nodes.keys():
+                        self.nodes[id].color = colors[id]
+                    elif id in self.edges.keys():
+                        self.edges[id].color = colors[id]
+            self.repaint()
