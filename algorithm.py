@@ -33,13 +33,13 @@ class Magic:
             self.__edges.append(edge)
 
     def get_all_steps(self):
-        self.steps = self.component_steps[:] + self.cycle_steps[:]
+        return self.component_steps[:] + self.cycle_steps[:]
 
     def get_component_steps(self):
-        self.steps = self.component_steps[:]
+        return self.component_steps[:]
 
     def get_cycle_steps(self):
-        self.steps = self.cycle_steps[:]
+        return self.cycle_steps[:]
 
     def reset(self):
         for v in self.__nodes:
@@ -92,7 +92,7 @@ class Magic:
                 if v not in self.__B[comp.index(i)]:
                     self.__B[comp.index(i)].append(v)
         self.__stack.remove(v)
-        self.add_color(i, "white")
+        self.add_color(v, "white")
         self.next_step()
         return f
 

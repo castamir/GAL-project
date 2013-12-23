@@ -30,8 +30,8 @@ class GAL:
         self.start = None
         self.x = None
         self.y = None
-        self.cycles = None
-        self.cycle_index = None
+        self.steps = None
+        self.step_index = None
 
     def run(self):
         self.window.mainloop()
@@ -118,46 +118,20 @@ class GAL:
         self.reset()
 
     def event_prev_cycle(self, event):
-        if self.cycle_index is None or self.cycle_index == 0:
-            self.cycle_index = len(self.cycles) - 1
-        else:
-            self.cycle_index -= 1
-
-        self.reset_colors()
-        for edge in self.cycles[self.cycle_index]:
-            edge.color = "red"
-
-        self.repaint()
+        self.algorithm_step_move(-1)
 
     def event_next_cycle(self, event):
-        if self.cycle_index is None:
-            self.cycle_index = 0
-        elif self.cycle_index >= len(self.cycles) - 1:
-            self.cycle_index = 0
-        else:
-            self.cycle_index += 1
-
-        self.reset_colors()
-        for edge in self.cycles[self.cycle_index]:
-            edge.color = "red"
-
-        self.repaint()
+        self.algorithm_step_move(1)
 
     def event_start(self, event):
         x = Magic(self.nodes, self.edges)
-        x.detect_cycles_in()
-        for n in self.nodes:
-            self.nodes[n].color = "white"
+        x.detect_cycles()
+        self.step_index = 0
+        self.steps = x.get_all_steps()
 
-        self.cycles = []
-        for cycle in x.cycles:
-            if len(cycle) > 0:
-                self.cycles.append(cycle)
-                for edge in cycle:
-                    edge.color = "red"
-        self.repaint()
+        self.algorithm_step_move(0)
 
-        if len(self.cycles) > 0:
+        if len(self.steps) > 0:
             self.buttons['prev'].config(state=1)
             self.buttons['next'].config(state=1)
 
@@ -309,6 +283,18 @@ class GAL:
         self.canvas.tag_lower(id, self.nodes.keys()[0])
         self.__repair_edge_starting_in_node(start)
         return edge
+
+    def algorithm_step_move(self, move):
+        self.step_index = (self.step_index + move) % len(self.steps)
+        self.reset_colors()
+        for i in range(self.step_index + 1):
+            colors = self.steps[i]
+            for id in colors:
+                if id in self.nodes.keys():
+                    self.nodes[id].color = colors[id]
+                elif id in self.edges.keys():
+                    self.edges[id].color = colors[id]
+        self.repaint()
 
 
 if __name__ == "__main__":
