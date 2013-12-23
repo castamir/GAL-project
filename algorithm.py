@@ -69,34 +69,38 @@ class Magic:
             if(self.__blocked[comp.index(w)]):
                 self.__unblock(w, comp)
 
-    def __find_cycles(self, v, s, comp):
+    def __find_cycles(self, v, s, comp, From):
         f = False
         self.__stack.append(v)
         self.__blocked[comp.index(v)] = True
         self.add_color(v, "green")
         self.next_step()
         for i in v.Adj:
+            self.color_edges([v]+[i],"red")
+            prev = i.color
             self.add_color(i, "red")
             self.next_step()
             if i == s:
                 cycle = []
                 for j in self.__stack:
                     cycle.append(j)
-                    self.add_color(j, "black")
-               # self.add_color(i, "black")
+                    self.add_color(j, "yellow")
 
-                self.color_edges(cycle[:] + [s], "green")
+                self.color_edges(cycle[:] + [s], "blue")
                 self.next_step()
-                self.color_edges(cycle[:] + [s], "grey")
+                self.color_edges(cycle[:] + [s], "red")
                 for j in self.__stack:
-                    cycle.append(j)
                     self.add_color(j, "green")
                 self.next_step()
                 self.cycles.append(cycle[:] + [s])
                 f = True
             elif not self.__blocked[comp.index(i)]:
-                if self.__find_cycles(i, s, comp):
+                if self.__find_cycles(i, s, comp, v):
                     f = True
+            self.color_edges([v]+[i],"grey")
+            if i.color != prev:
+                self.add_color(i, prev)
+                self.next_step()
         if f:
             self.__unblock(v, comp)
         else:
@@ -104,6 +108,8 @@ class Magic:
                 if v not in self.__B[comp.index(i)]:
                     self.__B[comp.index(i)].append(v)
         self.__stack.remove(v)
+        if From != None:
+            self.color_edges([From]+[v],"grey")
         self.add_color(v, "white")
         self.next_step()
         return f
@@ -134,7 +140,7 @@ class Magic:
                     self.__B[i.index(k)] = []
                     self.add_color(j, "white")
                 self.next_step()
-                self.__find_cycles(j,j,i) # zde to mozna bude potreba volat pro kazdy uzel
+                self.__find_cycles(j,j,i,None) # zde to mozna bude potreba volat pro kazdy uzel
                 tmp = i.pop(0)
                 if tmp != None:
                     self.add_color(tmp, "grey")
