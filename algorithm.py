@@ -19,6 +19,8 @@ class Magic:
         self.__blocked = {}
         self.__B = {}
         self.__stack = []
+        self.component_steps = []
+        self.cycle_steps = []
 
         for v in nodes:
             node = nodes[v]
@@ -29,6 +31,15 @@ class Magic:
             edge.name = e
             self.add_color(edge, "grey")
             self.__edges.append(edge)
+
+    def get_all_steps(self):
+        self.steps = self.component_steps[:] + self.cycle_steps[:]
+
+    def get_component_steps(self):
+        self.steps = self.component_steps[:]
+
+    def get_cycle_steps(self):
+        self.steps = self.cycle_steps[:]
 
     def reset(self):
         for v in self.__nodes:
@@ -56,12 +67,19 @@ class Magic:
         f = False
         self.__stack.append(v)
         self.__blocked[comp.index(v)] = True
-
+        self.add_color(v, "green")
+        self.next_step()
         for i in v.Adj:
+            self.add_color(i, "red")
+            self.next_step()
             if i == s:
                 cycle = []
                 for j in self.__stack:
                     cycle.append(j)
+                    self.add_color(j, "black")
+                    self.next_step()
+                self.add_color(i, "black")
+                self.next_step()
                 self.cycles.append(cycle[:] + [i])
                 f = True
             elif not self.__blocked[comp.index(i)]:
@@ -74,6 +92,8 @@ class Magic:
                 if v not in self.__B[comp.index(i)]:
                     self.__B[comp.index(i)].append(v)
         self.__stack.remove(v)
+        self.add_color(i, "white")
+        self.next_step()
         return f
 
     def detect_cycles(self):
@@ -87,7 +107,8 @@ class Magic:
             for j in i:
                 self.__blocked[i.index(j)] = False
                 self.__B[i.index(j)] = []
-
+                self.add_color(j, "white")
+            self.next_step()
             self.__get_edges_from_component(i)
 
             for j in i:
@@ -95,9 +116,15 @@ class Magic:
                 for k in i:
                     self.__blocked[i.index(k)] = False
                     self.__B[i.index(k)] = []
+                    self.add_color(j, "white")
+                self.next_step()
                 self.__find_cycles(j,j,i) # zde to mozna bude potreba volat pro kazdy uzel
                 i.pop(0)
+                self.add_color(i[0], "grey")
+                self.next_step()
 
+        self.cycle_steps = self.steps[len(self.component_steps):]
+        
         tmp = []
         for i in self.cycles:
             tmp.append(self.find_path_from_nodes(i,self.__edges))
@@ -117,21 +144,28 @@ class Magic:
 
     def __struct_init(self, V, E):
         for node in V:
-            node.color = "white"
+           # node.color = "white"
+
+            self.add_color(node,"white")
             node.Adj = []
             for edge in E:
                 if edge.start == node:
                     if edge.end not in node.Adj:
                         node.Adj.append(edge.end)
+        self.next_step()
 
     def __DFS_visit(self, node):
-        node.color = "grey"
+        #node.color = "grey"
+        self.add_color(node,"grey")
+        self.next_step()
         self.__time += 1
         node.d = self.__time
         for v in node.Adj:
             if v.color == "white":
                 self.__DFS_visit(v)
-        node.color = "black"
+        #node.color = "black"
+        self.add_color(node,"black")
+        self.next_step()
         self.__time += 1
         node.f = self.__time
 
@@ -193,10 +227,11 @@ class Magic:
 
         self.__find_component()
         # nalezeni komponent
-        self.add_color_to_components()
+        self.add_color_to_components_edges()
         self.next_step()
+        self.component_steps = self.steps[:]
 
-    def add_color_to_components(self):
+    def add_color_to_components_edges(self):
         for c in self._components:
             edges = self.__get_edges_from_component(c)
             for edge in edges:
@@ -253,11 +288,11 @@ if __name__ == "__main__":
         13: Edge(V["C"], V["D"]),
         14: Edge(V["D"], V["A"]),
 
-        15: Edge(V["B"], V["D"]),
-        16: Edge(V["D"], V["E"]),
-        17: Edge(V["E"], V["D"]),
+        15: Edge(V["B"], V["A"]),
+        16: Edge(V["C"], V["B"]),
+        17: Edge(V["D"], V["C"]),
 
-        18: Edge(V["A"], V["Z"]),
+        18: Edge(V["A"], V[""]),
         19: Edge(V["Z"], V["A"]),
 
         # druhej priklad
