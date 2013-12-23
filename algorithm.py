@@ -56,6 +56,12 @@ class Magic:
         self.steps.append({})
         self._current_step = self.steps[-1]
 
+    def color_edges(self, nodes, color):
+        for n in range(0,len(nodes)-1):
+            for e in self.__edges:
+                if e.start == nodes[n] and e.end == nodes[n+1]:
+                    self.add_color(e,color)
+
     def __unblock(self, node, comp):
         self.__blocked[comp.index(node)] = False
         for w in self.__B[comp.index(node)]:
@@ -77,13 +83,19 @@ class Magic:
                 for j in self.__stack:
                     cycle.append(j)
                     self.add_color(j, "black")
-                    self.next_step()
-                self.add_color(i, "black")
+               # self.add_color(i, "black")
+
+                self.color_edges(cycle[:] + [s], "green")
                 self.next_step()
-                self.cycles.append(cycle[:] + [i])
+                self.color_edges(cycle[:] + [s], "grey")
+                for j in self.__stack:
+                    cycle.append(j)
+                    self.add_color(j, "green")
+                self.next_step()
+                self.cycles.append(cycle[:] + [s])
                 f = True
             elif not self.__blocked[comp.index(i)]:
-                if self.__find_cycles(i,s,comp):
+                if self.__find_cycles(i, s, comp):
                     f = True
         if f:
             self.__unblock(v, comp)
@@ -98,18 +110,22 @@ class Magic:
 
     def detect_cycles(self):
         self.SSC()
+        for e in self.__edges:
+            self.add_color(e, "grey")
+        for n in self.__nodes:
+            self.add_color(n, "white")
+        #self.next_step()
         for i in self._components:
 
             self.__blocked = {}
             self.__B = {}
             self.__stack = []
-
-            for j in i:
-                self.__blocked[i.index(j)] = False
-                self.__B[i.index(j)] = []
-                self.add_color(j, "white")
-            self.next_step()
-            self.__get_edges_from_component(i)
+            # for j in i:
+            #     self.__blocked[i.index(j)] = False
+            #     self.__B[i.index(j)] = []
+            #     self.add_color(j, "white")
+            # #self.next_step()
+            # self.__get_edges_from_component(i)
 
             for j in i:
                 self.__get_edges_from_component(i)
@@ -119,9 +135,10 @@ class Magic:
                     self.add_color(j, "white")
                 self.next_step()
                 self.__find_cycles(j,j,i) # zde to mozna bude potreba volat pro kazdy uzel
-                i.pop(0)
-                self.add_color(i[0], "grey")
-                self.next_step()
+                tmp = i.pop(0)
+                if tmp != None:
+                    self.add_color(tmp, "grey")
+                    self.next_step()
 
         self.cycle_steps = self.steps[len(self.component_steps):]
         
