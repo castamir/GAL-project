@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+<graphml>
+    <key attr.name="y" attr.type="string" id="y"/>
+    <key attr.name="x" attr.type="string" id="x"/>
+    <key attr.name="label" attr.type="string" id="label"/>
+    <graph edgedefault="directed" id="">
+        <node id="101">
+            <data key="y">368</data>
+            <data key="x">666</data>
+        </node>
+        <node id="75">
+            <data key="y">64</data>
+            <data key="x">263</data>
+        </node>
+        <node id="76">
+            <data key="y">74</data>
+            <data key="x">540</data>
+        </node>
+        <node id="77">
+            <data key="y">202</data>
+            <data key="x">668</data>
+        </node>
+        <node id="80">
+            <data key="y">357</data>
+            <data key="x">500</data>
+        </node>
+        <node id="81">
+            <data key="y">333</data>
+            <data key="x">262</data>
+        </node>
+        <node id="82">
+            <data key="y">216</data>
+            <data key="x">385</data>
+        </node>
+        <node id="91">
+            <data key="y">205</data>
+            <data key="x">88</data>
+        </node>
+        <node id="92">
+            <data key="y">343</data>
+            <data key="x">89</data>
+        </node>
+        <node id="93">
+            <data key="y">74</data>
+            <data key="x">91</data>
+        </node>
+        <edge directed="false" source="92" target="75"/>
+        <edge directed="false" source="81" target="92"/>
+        <edge directed="false" source="80" target="77"/>
+        <edge directed="false" source="101" target="80"/>
+        <edge directed="false" source="101" target="76"/>
+        <edge directed="false" source="77" target="77"/>
+        <edge directed="false" source="75" target="81"/>
+        <edge directed="false" source="81" target="80"/>
+        <edge directed="false" source="80" target="76"/>
+        <edge directed="false" source="76" target="75"/>
+        <edge directed="false" source="75" target="82"/>
+        <edge directed="false" source="82" target="76"/>
+        <edge directed="false" source="82" target="80"/>
+        <edge directed="false" source="81" target="82"/>
+        <edge directed="false" source="93" target="91"/>
+        <edge directed="false" source="91" target="92"/>
+    </graph>
+</graphml>

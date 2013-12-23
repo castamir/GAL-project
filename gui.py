@@ -101,9 +101,7 @@ class Example(Frame):
         filename = dialog.show()
 
         if filename != '':
-            text = self.readFile(filename)
-            #self.txt.insert(END, text)
-            print text
+            self.readFile(filename)
 
     def onSave(self):
         fileTypes = [('GraphML files', '*.graphml')]
@@ -151,7 +149,7 @@ class Example(Frame):
             for gedge in g.edges():
                 start = nodeMap[gedge.node1.id]
                 end = nodeMap[gedge.node2.id]
-                isCurve = start == end
+                isCurve = gedge.node1.id == gedge.node2.id
                 self.__add_edge(start, end, isCurve)
             self.label.configure(text=os.path.basename(filename))
         except KeyError:
@@ -161,7 +159,6 @@ class Example(Frame):
             return
 
         self.repaint()
-
 
     def writeFile(self, filename):
         g = Graph()
@@ -177,11 +174,9 @@ class Example(Frame):
         for i in self.edges:
             edge = self.edges[i]
             edge.name = i
-            print g.add_edge_by_label(edge.start.name, edge.end.name)
 
         parser = GraphMLParser()
         parser.write(g, filename)
-
 
     def repaint(self):
         for e in self.edges:
@@ -374,7 +369,7 @@ class Example(Frame):
         return node
 
     def __add_edge(self, start, end, is_curve=False):
-        edge = Edge(start, end)
+        edge = Edge(start, end, is_curve)
         if is_curve:
             id = self.canvas.create_line(edge.get_coords(), width=2, smooth=True, arrow="last")
         else:
@@ -392,7 +387,7 @@ class Example(Frame):
                 colors = ['green', 'blue', 'red', 'yellow', 'purple', 'brown']
                 color_index = self.step_index % len(colors)
                 for edge in self.cycles[self.step_index]:
-                    edge.color = colors[color_index]
+                    edge.color = edge.start.color = edge.end.color = colors[color_index]
                 self.repaint()
         else:
             if (self.step_index + move) < len(self.steps) and self.step_index + move >= 0:
