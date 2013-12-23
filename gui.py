@@ -70,7 +70,7 @@ class Example(Frame):
         b.bind('<Button-1>', self.event_prev_step)
         b.grid(row=3, column=3, pady=4)
 
-        b = Checkbutton(self, text="Show title", command=self.event_change_mode)
+        b = Checkbutton(self, text="Pouze cykly", command=self.event_change_mode)
         b.grid(row=4, column=3, pady=4)
 
         self.buttons['reset'] = b = Button(self, text="Reset", width=15)
