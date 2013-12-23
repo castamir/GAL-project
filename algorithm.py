@@ -141,10 +141,9 @@ class Magic:
                     self.add_color(j, "white")
                 self.next_step()
                 self.__find_cycles(j,j,i,None) # zde to mozna bude potreba volat pro kazdy uzel
-                tmp = i.pop(0)
-                if tmp != None:
-                    self.add_color(tmp, "grey")
-                    self.next_step()
+
+                self.add_color(j, "grey")
+                self.next_step()
 
         self.cycle_steps = self.steps[len(self.component_steps):]
         
