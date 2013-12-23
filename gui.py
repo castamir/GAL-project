@@ -108,7 +108,6 @@ class Example(Frame):
 
         if not filename.endswith(".graphml"):
             filename += ".graphml"
-        print filename
 
         self.writeFile(filename)
 
@@ -123,26 +122,42 @@ class Example(Frame):
 
 
     def readFile(self, filename):
-        f = open(filename, "r")
-        text = f.read()
-        return text
+        self.reset()
+
+        parser = GraphMLParser()
+        g = parser.parse(filename)
+
+        try:
+            nodeMap = {}
+            for gnode in g.nodes():
+                nodeMap[gnode.id] = self.__add_node(int(gnode['x']), int(gnode['y']))
+            for gedge in g.edges():
+                start = nodeMap[gedge.node1.id]
+                end = nodeMap[gedge.node2.id]
+                isCurve = start == end
+                self.__add_edge(start, end, isCurve)
+        except KeyError:
+            self.reset()
+
+
+        self.repaint()
 
 
     def writeFile(self, filename):
         g = Graph()
 
-        n1 = g.add_node("A")
-        n2 = g.add_node("B")
-        n3 = g.add_node("C")
-        n4 = g.add_node("D")
-        n5 = g.add_node("E")
-        n5['x'] = 5
-        n5['y'] = 199
+        for i in self.nodes:
+            node = self.nodes[i]
+            node.name = str(i)
+            gnode = g.add_node(i)
+            gnode['label'] = i
+            gnode['x'] = node.x
+            gnode['y'] = node.y
 
-        g.add_edge(n1, n3)
-        g.add_edge(n2, n3)
-        g.add_edge(n3, n4)
-        g.add_edge(n3, n5)
+        for i in self.edges:
+            edge = self.edges[i]
+            edge.name = i
+            print g.add_edge_by_label(edge.start.name, edge.end.name)
 
         parser = GraphMLParser()
         parser.write(g, filename)
@@ -215,12 +230,12 @@ class Example(Frame):
             edge = Edge(start, start, True)
             points = edge.get_coords()
             self.active_edge = self.canvas.create_line(points, width=2, smooth=True, arrow="last")
-            self.canvas.tag_lower(self.active_edge, self.nodes.keys()[0])
+            self.canvas.tag_lower(self.active_edge, min(self.nodes.keys()))
             self.edges[self.active_edge] = edge
         else:
             x, y = self.__calculate_edge_end_from_nodes(start, end)
             self.canvas.coords(self.active_edge, start.x, start.y, x, y)
-            self.canvas.tag_lower(self.active_edge, self.nodes.keys()[0])
+            self.canvas.tag_lower(self.active_edge, min(self.nodes.keys()))
             edge = Edge(start, end)
             self.edges[self.active_edge] = edge
         self.active_edge = None
@@ -336,7 +351,7 @@ class Example(Frame):
         else:
             id = self.canvas.create_line(start.x, start.y, end.x, end.y, arrow="last", width=2)
         self.edges[id] = edge
-        self.canvas.tag_lower(id, self.nodes.keys()[0])
+        self.canvas.tag_lower(id, min(self.nodes.keys()))
         self.__repair_edge_starting_in_node(start)
         return edge
 

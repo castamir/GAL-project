@@ -1,5 +1,6 @@
 NODE_SIZE = 50
 DEFAULT_COLOR = "blue"
+DEFAULT_EDGE_COLOR = "black"
 
 
 class Edge:
@@ -11,7 +12,7 @@ class Edge:
         self.name = None
         self.start = start
         self.end = end
-        self.color = DEFAULT_COLOR
+        self.color = DEFAULT_EDGE_COLOR
         self.is_curve = is_curve
 
     def __str__(self):
