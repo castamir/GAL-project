@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from Tkinter import Tk, Text, BOTH, W, N, E, S, Canvas, Menu, END, RIGHT, LEFT, DISABLED
+from Tkinter import Tk, Text, BOTH, W, N, E, S, Canvas, Menu, END, RIGHT, LEFT, DISABLED, Checkbutton
 from ttk import Frame, Button, Label, Style
 import tkFileDialog
 import tkMessageBox as box
@@ -29,6 +29,8 @@ class Example(Frame):
         self.start = None
         self.x = None
         self.y = None
+        self.cycles = None
+        self.show_cycles_only_mode = False
         self.steps = None
         self.step_index = None
 
@@ -39,8 +41,8 @@ class Example(Frame):
 
         self.columnconfigure(1, weight=1)
         self.columnconfigure(3, pad=7)
-        self.rowconfigure(4, weight=1)
-        self.rowconfigure(5, pad=7)
+        self.rowconfigure(5, weight=1)
+        self.rowconfigure(6, pad=7)
 
         self.label = Label(self, text="graf1.graphml")
         self.label.grid(sticky=W, pady=4, padx=5)
@@ -53,7 +55,7 @@ class Example(Frame):
         self.canvas.bind('<Button-3>', self.event_move_node_start)
         self.canvas.bind('<B3-Motion>', self.event_move_node)
         self.canvas.pack()
-        self.canvas.grid(row=1, column=0, columnspan=2, rowspan=5,
+        self.canvas.grid(row=1, column=0, columnspan=2, rowspan=6,
                          padx=5, sticky=E + W + S + N)
 
         self.buttons['start'] = b = Button(self, text="Start", width=15)
@@ -68,9 +70,12 @@ class Example(Frame):
         b.bind('<Button-1>', self.event_prev_step)
         b.grid(row=3, column=3, pady=4)
 
+        b = Checkbutton(self, text="Show title", command=self.event_change_mode)
+        b.grid(row=4, column=3, pady=4)
+
         self.buttons['reset'] = b = Button(self, text="Reset", width=15)
         b.bind('<Button-1>', self.event_reset)
-        b.grid(row=5, column=3)
+        b.grid(row=6, column=3)
 
         menubar = Menu(self.parent)
         self.parent.config(menu=menubar)
@@ -106,10 +111,11 @@ class Example(Frame):
         dialog = tkFileDialog.SaveAs(self, filetypes=fileTypes)
         filename = dialog.show()
 
-        if not filename.endswith(".graphml"):
-            filename += ".graphml"
+        if filename != '':
+            if not filename.endswith(".graphml"):
+                filename += ".graphml"
 
-        self.writeFile(filename)
+            self.writeFile(filename)
 
 
     def onAbout(self):
@@ -149,7 +155,8 @@ class Example(Frame):
                 self.__add_edge(start, end, isCurve)
             self.label.configure(text=os.path.basename(filename))
         except KeyError:
-            box.showerror("Chyba při zpracování vstupního souboru", "Soubor obsahuje hrany spojujici neexistujici hrany")
+            box.showerror("Chyba při zpracování vstupního souboru",
+                          "Soubor obsahuje hrany spojujici neexistujici hrany")
             self.reset()
             return
 
@@ -197,6 +204,18 @@ class Example(Frame):
         self.buttons['prev'].config(state=DISABLED)
         self.buttons['next'].config(state=DISABLED)
 
+    def run(self):
+        x = ElementaryCircuitsDetector(self.nodes, self.edges)
+        x.detect_cycles()
+        self.cycles = x.cycles
+        self.step_index = 0
+        self.steps = x.get_all_steps()
+
+        self.algorithm_step_move(0)
+
+        if len(self.steps) > 0:
+            self.buttons['prev'].config(state=1)
+            self.buttons['next'].config(state=1)
 
     def event_reset(self, event):
         self.reset()
@@ -210,16 +229,11 @@ class Example(Frame):
             self.algorithm_step_move(1)
 
     def event_start(self, event):
-        x = ElementaryCircuitsDetector(self.nodes, self.edges)
-        x.detect_cycles()
-        self.step_index = 0
-        self.steps = x.get_all_steps()
+        self.run()
 
-        self.algorithm_step_move(0)
-
-        if len(self.steps) > 0:
-            self.buttons['prev'].config(state=1)
-            self.buttons['next'].config(state=1)
+    def event_change_mode(self):
+        self.show_cycles_only_mode = not self.show_cycles_only_mode
+        self.run()
 
     def event_add_edge_start(self, event):
         self.x = event.x
@@ -371,14 +385,24 @@ class Example(Frame):
         return edge
 
     def algorithm_step_move(self, move):
-        if (self.step_index + move) < len(self.steps) and self.step_index + move >= 0:
-            self.step_index += move
-            self.reset_colors()
-            for i in range(self.step_index + 1):
-                colors = self.steps[i]
-                for id in colors:
-                    if id in self.nodes.keys():
-                        self.nodes[id].color = colors[id]
-                    elif id in self.edges.keys():
-                        self.edges[id].color = colors[id]
-            self.repaint()
+        if self.show_cycles_only_mode:  # cycles only
+            if (self.step_index + move) < len(self.cycles) and self.step_index + move >= 0:
+                self.step_index += move
+                self.reset_colors()
+                colors = ['green', 'blue', 'red', 'yellow', 'purple', 'brown']
+                color_index = self.step_index % len(colors)
+                for edge in self.cycles[self.step_index]:
+                    edge.color = colors[color_index]
+                self.repaint()
+        else:
+            if (self.step_index + move) < len(self.steps) and self.step_index + move >= 0:
+                self.step_index += move
+                self.reset_colors()
+                for i in range(self.step_index + 1):
+                    colors = self.steps[i]
+                    for id in colors:
+                        if id in self.nodes.keys():
+                            self.nodes[id].color = colors[id]
+                        elif id in self.edges.keys():
+                            self.edges[id].color = colors[id]
+                self.repaint()
