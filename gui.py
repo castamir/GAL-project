@@ -34,7 +34,7 @@ class Example(Frame):
         self.steps = None
         self.step_index = None
 
-        self.parent.title("Windows")
+        self.parent.title("Demonstrační aplikace - nalezení elementárních cyklů v orientovaném grafu")
         self.style = Style()
         self.style.theme_use("default")
         self.pack(fill=BOTH, expand=1)
