@@ -74,7 +74,7 @@ class Magic:
         self.__stack.append(v)
         self.__blocked[comp.index(v)] = True
         self.add_color(v, "green")
-        self.next_step()
+        
         for i in v.Adj:
             self.color_edges([v]+[i],"red")
             prev = i.color
@@ -120,18 +120,12 @@ class Magic:
             self.add_color(e, "grey")
         for n in self.__nodes:
             self.add_color(n, "white")
-        #self.next_step()
+
         for i in self._components:
 
             self.__blocked = {}
             self.__B = {}
             self.__stack = []
-            # for j in i:
-            #     self.__blocked[i.index(j)] = False
-            #     self.__B[i.index(j)] = []
-            #     self.add_color(j, "white")
-            # #self.next_step()
-            # self.__get_edges_from_component(i)
 
             for j in i:
                 self.__get_edges_from_component(i)
@@ -140,9 +134,10 @@ class Magic:
                     self.__B[i.index(k)] = []
                     self.add_color(j, "white")
                 self.next_step()
-                self.__find_cycles(j,j,i,None) # zde to mozna bude potreba volat pro kazdy uzel
+                self.__find_cycles(j,j,i,None)
 
                 self.add_color(j, "grey")
+                i.remove(j)
                 self.next_step()
 
         self.cycle_steps = self.steps[len(self.component_steps):]
