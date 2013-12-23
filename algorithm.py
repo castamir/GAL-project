@@ -112,6 +112,8 @@ class Magic:
             self.color_edges([From]+[v],"grey")
         if s != v:
             self.add_color(v, "white")
+        else:
+            self.add_color(v, "grey")
         self.next_step()
         return f
 
@@ -123,25 +125,21 @@ class Magic:
             self.add_color(n, "white")
 
         for i in self._components:
-
+            tmp = i[:]
             self.__blocked = {}
             self.__B = {}
             self.__stack = []
+            for j in tmp:
 
-            for j in i:
                 self.__get_edges_from_component(i)
                 for k in i:
                     self.__blocked[i.index(k)] = False
                     self.__B[i.index(k)] = []
                     self.add_color(k, "white")
                 self.add_color(j, "green")
-                self.next_step()
                 self.__find_cycles(j,j,i,None)
-
-                self.add_color(j, "grey")
                 i.remove(j)
-               # self.next_step()
-
+            i = tmp[:]
         self.cycle_steps = self.steps[len(self.component_steps):]
         
         tmp = []
