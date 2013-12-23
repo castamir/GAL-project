@@ -3,7 +3,7 @@ from gui import *
 
 def main():
     root = Tk()
-    root.geometry("350x300+300+300")
+    root.geometry("900x500+150+150")
     app = Example(root)
     root.mainloop()
 

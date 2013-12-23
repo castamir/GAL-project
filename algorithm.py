@@ -130,7 +130,6 @@ class Magic:
             self.__B = {}
             self.__stack = []
             for j in tmp:
-
                 self.__get_edges_from_component(i)
                 for k in i:
                     self.__blocked[i.index(k)] = False
