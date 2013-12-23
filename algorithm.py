@@ -91,16 +91,21 @@ class Magic:
                 self.color_edges(cycle[:] + [s], "red")
                 for j in self.__stack:
                     self.add_color(j, "green")
+                self.add_color(v, "red")
                 self.next_step()
                 self.cycles.append(cycle[:] + [s])
                 f = True
             elif not self.__blocked[comp.index(i)]:
                 if self.__find_cycles(i, s, comp, v):
                     f = True
+                
             self.color_edges([v]+[i],"grey")
             if i.color != prev:
                 self.add_color(i, prev)
                 self.next_step()
+
+        self.add_color(v, "red")
+        self.next_step()
         if f:
             self.__unblock(v, comp)
         else:
@@ -136,6 +141,7 @@ class Magic:
                     self.__B[i.index(k)] = []
                     self.add_color(k, "white")
                 self.add_color(j, "green")
+                self.next_step()
                 self.__find_cycles(j,j,i,None)
                 i.remove(j)
             i = tmp[:]
