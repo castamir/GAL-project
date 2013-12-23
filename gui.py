@@ -56,7 +56,7 @@ class Example(Frame):
         self.canvas.grid(row=1, column=0, columnspan=2, rowspan=5,
                          padx=5, sticky=E + W + S + N)
 
-        self.buttons['start'] = b = Button(self, text="Vyhledat cykly", width=15)
+        self.buttons['start'] = b = Button(self, text="Start", width=15)
         b.bind('<Button-1>', self.event_start)
         b.grid(row=1, column=3)
 
@@ -124,13 +124,24 @@ class Example(Frame):
     def readFile(self, filename):
         self.reset()
 
-        parser = GraphMLParser()
-        g = parser.parse(filename)
+        try:
+            parser = GraphMLParser()
+            g = parser.parse(filename)
+        except Exception:
+            box.showerror("Chyba při zpracování vstupního souboru", "Chybný formát souboru.")
+            return
+
+        nodeMap = {}
 
         try:
-            nodeMap = {}
             for gnode in g.nodes():
                 nodeMap[gnode.id] = self.__add_node(int(gnode['x']), int(gnode['y']))
+        except KeyError:
+            box.showerror("Chyba při zpracování vstupního souboru", "Uzlum chybi udaje o pozici (atributy x a y).")
+            self.reset()
+            return
+
+        try:
             for gedge in g.edges():
                 start = nodeMap[gedge.node1.id]
                 end = nodeMap[gedge.node2.id]
@@ -138,8 +149,9 @@ class Example(Frame):
                 self.__add_edge(start, end, isCurve)
             self.label.configure(text=os.path.basename(filename))
         except KeyError:
+            box.showerror("Chyba při zpracování vstupního souboru", "Soubor obsahuje hrany spojujici neexistujici hrany")
             self.reset()
-
+            return
 
         self.repaint()
 
@@ -198,7 +210,7 @@ class Example(Frame):
             self.algorithm_step_move(1)
 
     def event_start(self, event):
-        x = Magic(self.nodes, self.edges)
+        x = ElementaryCircuitsDetector(self.nodes, self.edges)
         x.detect_cycles()
         self.step_index = 0
         self.steps = x.get_all_steps()

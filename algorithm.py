@@ -1,6 +1,7 @@
-from Components import *
+from items import *
 
-class Magic:
+
+class ElementaryCircuitsDetector:
     def __init__(self, nodes, edges):
         if not isinstance(nodes, dict) or not isinstance(nodes, dict):
             raise Exception("Fuj, co jsi mi to dal? Ja chci slovnik s uzly a hranami!!!")
@@ -57,16 +58,16 @@ class Magic:
         self._current_step = self.steps[-1]
 
     def color_edges(self, nodes, color):
-        for n in range(0,len(nodes)-1):
+        for n in range(0, len(nodes) - 1):
             for e in self.__edges:
-                if e.start == nodes[n] and e.end == nodes[n+1]:
-                    self.add_color(e,color)
+                if e.start == nodes[n] and e.end == nodes[n + 1]:
+                    self.add_color(e, color)
 
     def __unblock(self, node, comp):
         self.__blocked[comp.index(node)] = False
         for w in self.__B[comp.index(node)]:
             self.__B[comp.index(node)].remove(w)
-            if(self.__blocked[comp.index(w)]):
+            if (self.__blocked[comp.index(w)]):
                 self.__unblock(w, comp)
 
     def __find_cycles(self, v, s, comp, From):
@@ -76,7 +77,7 @@ class Magic:
         self.add_color(v, "green")
 
         for i in v.Adj:
-            self.color_edges([v]+[i],"red")
+            self.color_edges([v] + [i], "red")
             prev = i.color
             self.add_color(i, "red")
             self.next_step()
@@ -91,7 +92,7 @@ class Magic:
                 self.color_edges(cycle[:] + [s], "red")
                 for j in self.__stack:
                     self.add_color(j, "green")
-                #self.add_color(v, "red")
+                    #self.add_color(v, "red")
                 self.color_edges([v] + [s], "grey")
                 self.next_step()
                 self.cycles.append(cycle[:] + [s])
@@ -100,7 +101,7 @@ class Magic:
                 if self.__find_cycles(i, s, comp, v):
                     f = True
 
-            self.color_edges([v]+[i],"grey")
+            self.color_edges([v] + [i], "grey")
             if i.color != prev:
                 self.add_color(i, prev)
                 self.next_step()
@@ -115,7 +116,7 @@ class Magic:
                     self.__B[comp.index(i)].append(v)
         self.__stack.remove(v)
         if From != None:
-            self.color_edges([From]+[v],"grey")
+            self.color_edges([From] + [v], "grey")
         if s != v:
             self.add_color(v, "white")
         else:
@@ -143,14 +144,14 @@ class Magic:
                     self.add_color(k, "white")
                 self.add_color(j, "green")
                 self.next_step()
-                self.__find_cycles(j,j,i,None)
+                self.__find_cycles(j, j, i, None)
                 i.remove(j)
             i = tmp[:]
         self.cycle_steps = self.steps[len(self.component_steps):]
-        
+
         tmp = []
         for i in self.cycles:
-            tmp.append(self.find_path_from_nodes(i,self.__edges))
+            tmp.append(self.find_path_from_nodes(i, self.__edges))
         self.cycles = []
         self.cycles = tmp
 
@@ -167,9 +168,9 @@ class Magic:
 
     def __struct_init(self, V, E):
         for node in V:
-           # node.color = "white"
+        # node.color = "white"
 
-            self.add_color(node,"white")
+            self.add_color(node, "white")
             node.Adj = []
             for edge in E:
                 if edge.start == node:
@@ -179,15 +180,15 @@ class Magic:
 
     def __DFS_visit(self, node):
         #node.color = "grey"
-        self.add_color(node,"grey")
+        self.add_color(node, "grey")
         self.next_step()
         self.__time += 1
         node.d = self.__time
         for v in node.Adj:
             if v.color == "white":
                 self.__DFS_visit(v)
-        #node.color = "black"
-        self.add_color(node,"black")
+            #node.color = "black"
+        self.add_color(node, "black")
         self.next_step()
         self.__time += 1
         node.f = self.__time
@@ -275,56 +276,3 @@ class Magic:
                 edges.append(edge)
                 edge.start.Adj.append(edge.end)
         return edges
-
-
-if __name__ == "__main__":
-
-    # V = {
-    #     "A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0),
-    #     "D": Node(0, 0), "E": Node(0, 0), "F": Node(0, 0), "G": Node(0, 0), "H": Node(0, 0)
-    # }
-    # E = {
-    #     #0: Edge(V["A"], V["B"]), 2: Edge(V["B"], V["D"]), 4: Edge(V["D"], V["C"]), 1: Edge(V["C"], V["A"]),
-    #     6: Edge(V["A"], V["B"]),
-    #     7: Edge(V["B"], V["C"]),
-    #     9: Edge(V["C"], V["B"]),
-    #     10: Edge(V["B"], V["A"]),
-    #
-    #     11: Edge(V["D"], V["E"]),
-    #     12: Edge(V["E"], V["F"]),
-    #     13: Edge(V["F"], V["G"]),
-    #     14: Edge(V["G"], V["D"]),
-    #     15: Edge(V["E"], V["G"]),
-    #     16: Edge(V["E"], V["H"]),
-    #     17: Edge(V["H"], V["E"]),
-    # }
-
-    V = {
-        "A": Node(0, 0), "B": Node(0, 0), "C": Node(0, 0),
-        "D": Node(0, 0), "E": Node(0, 0), "Z": Node(0, 0),
-    }
-    E = {
-
-
-        11: Edge(V["A"], V["B"]),
-        12: Edge(V["B"], V["C"]),
-        13: Edge(V["C"], V["D"]),
-        14: Edge(V["D"], V["A"]),
-
-        15: Edge(V["B"], V["A"]),
-        16: Edge(V["C"], V["B"]),
-        17: Edge(V["D"], V["C"]),
-
-        18: Edge(V["A"], V[""]),
-        19: Edge(V["Z"], V["A"]),
-
-        # druhej priklad
-
-        # 6: Edge(V["A"], V["B"]),
-        # 7: Edge(V["B"], V["C"]),
-        # 5: Edge(V["C"], V["B"]),
-        # 4: Edge(V["B"], V["A"]),
-    }
-
-    x = Magic(V, E)
-    x.detect_cycles()
